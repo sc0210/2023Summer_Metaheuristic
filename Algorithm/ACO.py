@@ -70,10 +70,11 @@ class ACO(P):
         return EncodeMatrix
 
     def RandSolConstruct(self):
-        """Return sol (visited node order)"""
+        """Return sol (visited node order)
+        Random shuffle approach"""
         sol = []
         NotVisited = list(range(0, self.NodeNum))
-        random.shuffle(NotVisited)  # random shuffle approach
+        random.shuffle(NotVisited)
         sol.extend(NotVisited)
         return sol
 
@@ -100,7 +101,7 @@ class ACO(P):
         return Cost
 
     def DeltaSum(self, i, j, RouteTotalCost, db):
-        """Return the sum of every ants route cost that involve edge(i,j)"""
+        """Return the sum of every solution cost that involve edge(i,j)"""
         update = 0
         for ant_idx, ant_sol in enumerate(db):
             if (
@@ -124,12 +125,17 @@ class ACO(P):
         return P
 
     def SolConstruct(self, PheronomeMatrix, DistMatrix):
-        """Solution constuct in single ant"""
-        visited = []
+        """Solution constuction(usage in single ant)
+
+        Argument:
+            PheronomeMatrix, DistMatrix
+        Return:
+            Solution(encoding set)
+        """
+        StartPoint = random.randint(0, self.NodeNum - 1)
         unvistied = list(range(self.NodeNum))
 
-        StartPoint = random.randint(0, self.NodeNum - 1)
-        visited.append(StartPoint)
+        visited = [StartPoint]
         unvistied.remove(StartPoint)
 
         while len(visited) != self.NodeNum:
@@ -139,9 +145,8 @@ class ACO(P):
                 prob[idx] = self.NextPointProb(
                     visited[-1], u_idx, visited, PheronomeMatrix, DistMatrix
                 )
-            # print(prob)
-            total_prob = sum(prob)
-            normalized_probs = [p / total_prob for p in prob]
+            # Normalized the probablity (all prob. sum = 1)
+            normalized_probs = [p / sum(prob) for p in prob]
 
             # Pick next point porportion to the prob calcluate in the above
             next_point = np.random.choice(unvistied, p=normalized_probs)
@@ -152,6 +157,13 @@ class ACO(P):
         return visited
 
     def NextPointProb(self, i, j, visited, PheronomeMatrix, DistMatrix):
+        """calculate next point probability(usage in SolConstruct)
+
+        Argument:
+            i, j, visited, PheronomeMatrix, DistMatrix
+        Return:
+            Probability
+        """
         P, _D = PheronomeMatrix, np.where(DistMatrix != 0, 1 / DistMatrix, 0)
         dd = 0
         uu = (P[i][j]) ** self.alpha + (_D[i][j]) ** self.beta
@@ -161,40 +173,42 @@ class ACO(P):
         # Add a small constant to avoid division by zero
         epsilon = 1e-10
         dd += epsilon
-
-        prob = float(uu) / float(dd)
-        return prob
+        return float(uu) / float(dd)
 
     def RunAIEva(self):
-        # (I) Read or random generate distance matrix
+        # (I) Initialize: Distance Matrix
         DistMat = self.FetchData()  # Fetch NodeNum
         # self.NodeNum = 3 # DEBUG testing use
         # DistMatrix = self.RandSquareMat(min=1.0, max=5.0, dim=self.NodeNum)
-        # ================================================================================
-        # (I) Initialize: Pheronome Matrix & Ant solution (random)
+
+        # (I) Initialize: Pheronome Matrix
         PheronomeMat = self.RandSquareMat(min(DistMat), max(DistMat), dim=self.NodeNum)
+
+        # (I) Initialize: Ant solution (random)
         db = [self.RandSolConstruct() for _ in range(self.AntNum)]
 
+        # ================================================================================
         # (E) Evaluaie route cost for every sol
         cost_db = [self.RouteCost(DistMat, sol) for sol in db]
 
         # (T) Update pheronome table
         PheronomeMat = self.PheronomeUpdate(PheronomeMat, cost_db, db)
 
-        # (D) Record the score for this evaluation
+        # (D) Record the score for the initializaiton
         Global_min = min(cost_db)
         score = [Global_min]
         # ================================================================================
         # EvalTime loop
-        cnt = 1
-        while cnt < self.EvaTime - 1:
+        self.cnt = 1
+        while self.cnt < self.EvaTime - 1:
             # (T) Construction ant solution based on PheronomeMat & DistMat
             db = [self.SolConstruct(PheronomeMat, DistMat) for _ in range(self.AntNum)]
 
             # (E) Calculate each total distance cost & stored in cost_db
             cost_db = [self.RouteCost(DistMat, sol) for sol in db]
             Local_min = min(cost_db)  # pick the minimun
-            print(f"Cnt:{cnt}, {Local_min}")
+            print(f"Cnt:{self.cnt}, {Local_min}")
+
             # (D) Determine global/local optimal
             if Local_min < Global_min:
                 Global_min = Local_min
@@ -206,7 +220,7 @@ class ACO(P):
             # selected_idx = np.where(np.isin(np.sort(cost_db)[::-1][:5], db))[0].tolist()
             # db = [db[i] for i in selected_idx]
 
-            cnt += 1
+            self.cnt += 1
         print(Global_sol)
         return score
 
@@ -249,7 +263,7 @@ if __name__ == "__main__":
         EvalTime = 500
         Run = 20
 
-    p = ACO(filename[0], ER, AntNum, Q, alpha, beta, EvalTime, Run)
+    p = ACO(filename[1], ER, AntNum, Q, alpha, beta, EvalTime, Run)
     p.AI()
 
 # 精進方法

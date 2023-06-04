@@ -3,6 +3,7 @@ import math
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.ticker import MultipleLocator
 
 
 class cal:
@@ -26,9 +27,10 @@ class cal:
     def bin2dec(self, bin, BitNum):
         dec = 0
         for idx in range(BitNum):
-            if bin[::-1][idx] == 1:
-                dec += math.pow(2, idx)
-        return int(dec)
+            # bit wise operation
+            if bin & (1 << idx):  # bin[::-1][idx] == 1
+                dec += 2**idx
+        return dec
 
     def Write2CSV(self, data, filepath, filename):
         with open(f"{filepath}/{filename}.csv", "a") as file:
@@ -37,50 +39,57 @@ class cal:
         # print("Export data to csv file")
 
     def Draw(self, y, filename, save=True):
+        # fig, ax = plt.subplots(figsize=(xsize, ysize))
+        # ax = plt.gca()
+
+        # ax.xaxis.set_minor_locator(MultipleLocator(0.5))
+        # ax.yaxis.set_minor_locator(MultipleLocator(0.005))
+        plt.figure(figsize=(10, 6))  # Width: 8 inches, Height: 6 inches
+        plt.rcParams.update({
+            "text.usetex": True,
+            "font.family": "Helvetica"
+        })
+        plt.rcParams["font.size"] = 15
+        plt.rcParams["legend.fontsize"] = 18
         plt.grid()
         # plt.ylim([0, max(data[:]) + 1])
-        plt.xlim([0, len(y)])
-        plt.xlabel("Number of iteration", fontsize=21)
-        plt.ylabel("Object value", fontsize=21)
-        plt.title(filename, fontsize=25)
+        # plt.xlim([0, len(y)])
+        plt.xlabel("Number of iteration")
+        plt.ylabel("Object value")
+        plt.title(filename)
         x = np.arange(0, len(y), 1)
         plt.plot(
             x,
             y,
-            color="green",
+            # color="green",
             ls="--",
             marker=".",
             markerfacecolor="k",
         )
-        Y = [2020] * len(y)
-        plt.plot(
-            x,
-            Y,
-            color="red",
-            ls="--",
-            # marker=".",
-            # markerfacecolor="k",
-        )
+        # Y = [2020] * len(y)
+        # plt.plot(
+        #     x,
+        #     Y,
+        #     color="red",
+        #     ls="--",
+        #     # marker=".",
+        #     # markerfacecolor="k",
+        # )
         if save:
             plt.savefig(f"./result/{filename}.png")
 
     def AvgResult(self, filename):
         # Read multi-rows from csv file
-        AllData, AvgData = [], []
+        AllData = []
         with open(f"./result/{filename}", "r") as file:
             csvreader = csv.reader(file)
             for row in csvreader:
                 AllData.append(row)
 
-        # Average rounds of result(O(m*n))
-        # for i in range(np.shape(AllData)[1]):
-        #     col = 0
-        #     for j in range(np.shape(AllData)[0]):
-        #         col += int(AllData[j][i])
-        #     # print(col / np.shape(tmp)[0])
-        #     AvgData.append(col)
-        # AvgData = [idx / np.shape(AllData)[0] for idx in AvgData]
+        # Convert AllData to a NumPy array
+        AllData = np.array(AllData, dtype="float")
 
-        # Numpy version(O(n))
-        AvgData = np.mean(AllData, dtype="int", axis=0)
+        # Calculate the average using NumPy
+        AvgData = np.mean(AllData, axis=0)
+
         return AvgData

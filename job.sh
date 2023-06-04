@@ -17,5 +17,8 @@ python -m Algorithm.GA 100 20 0.6 0.1 50 20 50
 # [ACO.py] [ER] [AntNum] [Q] [alpha] [beta] [EvalTime] [Run]
 python -m Algorithm.ACO 0.8 4 4.0 3 2 500 20
 
+# [PSO.py] [ParticleNum] [Dimension] [Step] [Inertia] [a1] [a2] [EvaTime] [EdgeConstraint] [Run]
+python -m Algorithm.PSO 100 10 20 1 1 0.5 0.5 100 50
+
 # Comparsion among different algo.
 # python main.py 100 1000 50
