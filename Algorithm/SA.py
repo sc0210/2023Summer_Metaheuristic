@@ -1,6 +1,8 @@
-import math
 import random
 import sys
+import time
+
+import numpy as np
 
 from Tool.Cal import cal
 
@@ -11,11 +13,11 @@ class SA:
         self.iteration = iteration
         self.temperature = temperature
         self.Run = Run
-        self.name = f"{self.BitNum}{self.iteration}_SA"
+        self.name = f"{self.temperature}_SA"
         self.G = cal()
 
-    def Fitness(curr_sol):
-        return sum(curr_sol)
+    def Fitness(self, curr_sol):
+        return np.sum(curr_sol)
 
     def Neighbor(self, curr):
         """Return neighborhod solution(Transition)"""
@@ -26,71 +28,68 @@ class SA:
 
     def RunAIEva(self):
         """Simulated annealing, SA"""
-        solution_db, fitness_db = [], []
 
         # Initialization
-        curr_sol = [random.randint(0, 1) for _ in range(self.BitNum)]
-        curr_fitness = self.Fitness(curr_sol)
-        # solution_db.append(curr_sol)
-        fitness_db.append(curr_fitness)
-        i = 0
+        Global_sol = np.array([random.randint(0, 1) for _ in range(self.BitNum)])
+        Global_fitness = self.Fitness(Global_sol)
+        solution_db = [Global_sol.tolist()]
+        fitness_db = [Global_fitness]
+        self.cnt = 0
 
-        while i <= (self.iteration - 1) and (self.temperature > 0):
+        while self.cnt <= (self.iteration - 1) and (self.temperature > 0):
             # (T) Transition
-            neighbor_solution = self.Neighbor(curr_sol)
+            neighbor_solution = self.Neighbor(Global_sol)
             neighbor_fitness = self.Fitness(neighbor_solution)
 
             # (E) Calculate the acceptance probability based on the current temperature
-            delta_fitness = neighbor_fitness - curr_fitness
+            delta_fitness = neighbor_fitness - Global_fitness
             acceptance_prob = min(
-                1, math.exp(delta_fitness / self.temperature)
+                1, np.exp(delta_fitness / self.temperature)
             )  # negative ->[0,1]
 
             # (D) update the current solution
-            if neighbor_fitness > curr_fitness:
-                curr_sol = neighbor_solution.copy()
-                curr_fitness = neighbor_fitness
-                solution_db.append(curr_sol)
-                fitness_db.append(curr_fitness)
+            if neighbor_fitness > Global_fitness:
+                Global_sol = neighbor_solution.copy()
+                Global_fitness = neighbor_fitness
                 # print(f"Accept better {neighbor_fitness}/{curr_fitness}_{i}")
-                i += 1
             elif random.random() < acceptance_prob:
-                curr_sol = neighbor_solution.copy()
-                curr_fitness = neighbor_fitness
-                solution_db.append(curr_sol)
-                fitness_db.append(curr_fitness)
+                Global_sol = neighbor_solution.copy()
+                Global_fitness = neighbor_fitness
                 self.temperature *= 0.95
                 # print(f"Accept SA  {neighbor_fitness}/{curr_fitness}_{i}")
-                i += 1
-            else:
-                # print(f"E {neighbor_fitness}/{curr_fitness}_{i}")
-                solution_db.append(curr_sol)
-                fitness_db.append(curr_fitness)
-                i += 1
 
+            solution_db.append(Global_sol.tolist())
+            fitness_db.append(Global_fitness)
+            self.cnt += 1
         return solution_db, fitness_db
 
     def AI(self):
-        for _ in range(self.Run):
+        print("============/START of the Evaluation/============")
+        st = time.time()
+        for Run_index in range(self.Run):
             sol, result = self.RunAIEva()
-            self.G.Write2CSV(result, "./result", self.name)
+            self.G.Write2CSV(np.array(result), "./result", self.name)
+
+            if Run_index % 10 == 0:
+                print(
+                    "Run.{:<2}, Obj:{:<2}, Time:{:<3}\nBest solution:{}\n".format(
+                        Run_index,
+                        np.max(result),
+                        np.round(time.time() - st, 3),
+                        [sol[-1]],
+                    )
+                )
 
         # Visualization of the result
-        y = self.G.AvgResult(f"{self.name}.csv")
-        self.G.Draw(y, self.name)
+        self.G.Draw(self.G.AvgResult(f"{self.name}.csv"), self.name)
+        print("============/END of the Evaluation/============")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) == 5:
-        BitNum = int(sys.argv[1])
-        temperature = int(sys.argv[2])
-        iteration = int(sys.argv[3])
-        Run = int(sys.argv[4])
+    if len(sys.argv) == 2:
+        temperature = int(sys.argv[1])
     else:
-        BitNum = 1000
-        iteration = 1000
         temperature = 10
-        Run = 50
 
-    p = SA(BitNum, iteration, temperature, Run)
+    p = SA(BitNum=100, iteration=1000, temperature=temperature, Run=50)
     p.AI()

@@ -3,56 +3,57 @@
 # dequene -> .pop(0)
 import random
 import sys
+import time
+
+import numpy as np
 
 from Tool.Cal import cal
 
 
 class TS:
-    def __init__(self, BitNum, tabulist_size, iteration):
+    def __init__(self, BitNum, TabuSize, iteration, Run):
         self.BitNum = BitNum
-        self.tabulist_size = tabulist_size
+        self.tabulist_size = TabuSize
         self.iteration = iteration
-        self.name = f"{self.BitNum}{self.iteration}_TS"
+        self.tabulist = []
+        self.name = f"{self.tabulist_size}_TS"
         self.G = cal()
+        self.Run = Run
 
-    def Neighbor(self, curr, BitNum):
-        ShiftBit = random.randint(0, BitNum - 1)
+    def Neighbor(self, curr):
+        ShiftBit = random.randint(0, self.BitNum - 1)
         new_curr = curr.copy()
         new_curr[ShiftBit] = 1 - new_curr[ShiftBit]
         return new_curr
 
-    def TabuListCheck(self, list, size):
-        while len(list) > int(size):
-            list.pop(0)
+    def TabuListCheck(self):
+        while len(self.tabulist) > self.tabulist_size:
+            self.tabulist.pop(0)
         return list
 
-    def NonTabuNeighborSelection(self, tabulist, curr):
-        while curr in tabulist:
-            new_curr = self.Neighbor(curr, self.BitNum)
+    def NonTabuNeighborSelection(self, curr):
+        while any((curr == x).all() for x in self.tabulist):
+            new_curr = self.Neighbor(curr)
             curr = new_curr.copy()
-        # tabulist.append(curr)
-        # tabulist=TabuListCheck(tabulist,5)
-        return curr, tabulist
+        return curr
 
     # ==========================================================================================
-    def RunAIEva(self, BitNum, tabulist_size, iteration):
+    def RunAIEva(self):
         """Tabu Search"""
-        solution_db, fitness_db, tabulist = [], [], []
-
         # Ranodm initalize
-        curr_sol = [random.randint(0, 1) for _ in range(BitNum)]
+        curr_sol = np.array([random.randint(0, 1) for _ in range(self.BitNum)])
         Global_fitness = self.G.Fitness(curr_sol)
+        self.tabulist.append(curr_sol.tolist())
 
-        solution_db.append(curr_sol)
-        fitness_db.append(Global_fitness)
-        tabulist.append(curr_sol)
+        solution_db = [curr_sol]
+        fitness_db = [Global_fitness]
+        self.cnt = 0
 
-        for _ in range(iteration):
+        while self.cnt < self.iteration:
             # (T) Generate a neighbor solution: tmp_solution
-            tmp_sol = self.Neighbor(curr_sol, BitNum)
-            neighbor_sol, tabulist = self.NonTabuNeighborSelection(
-                tabulist, tmp_sol, BitNum
-            )  # check tmp_solution whether is or not in tabu list
+            # check tmp_solution whether is or not in tabu list
+            temp_sol = self.Neighbor(curr_sol)
+            neighbor_sol = self.NonTabuNeighborSelection(temp_sol)
 
             # (E) Evaluateion
             Local_fitness = self.G.Fitness(neighbor_sol)
@@ -63,37 +64,42 @@ class TS:
                 curr_sol = neighbor_sol.copy()
                 Global_fitness = Local_fitness
 
-                # solution_db.append(curr_sol)
-                fitness_db.append(Global_fitness)
-
                 # update tabulist
-                tabulist.append(neighbor_sol)
-                tabulist = self.TabuListCheck(tabulist, tabulist_size)
+                self.tabulist.append(neighbor_sol.tolist())
+                self.TabuListCheck()
 
-            else:
-                # solution_db.append(curr_sol)
-                fitness_db.append(Global_fitness)
-
+            solution_db.append(curr_sol.tolist())
+            fitness_db.append(Global_fitness)
+            self.cnt += 1
         return solution_db, fitness_db
+
+    def AI(self):
+        print("============/START of the Evaluation/============")
+        st = time.time()
+        for Run_index in range(self.Run):
+            sol, result = self.RunAIEva()
+            self.G.Write2CSV(np.array(result), "./result", self.name)
+
+            if Run_index % 10 == 0:
+                print(
+                    "Run.{:<2}, Obj:{:<2}, Time:{:<3}\nBest solution:{}\n".format(
+                        Run_index,
+                        np.max(result),
+                        np.round(time.time() - st, 3),
+                        [sol[-1]],
+                    )
+                )
+
+        # Visualization of the result
+        self.G.Draw(self.G.AvgResult(f"{self.name}.csv"), self.name)
+        print("============/END of the Evaluation/============")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) == 5:
-        BitNum, TabuSize, iteration, Run = (
-            int(sys.argv[1]),
-            int(sys.argv[2]),
-            int(sys.argv[3]),
-            int(sys.argv[4]),
-        )
+    if len(sys.argv) == 2:
+        TabuSize = int(sys.argv[1])
     else:
-        BitNum, TabuSize, iteration, Run = 10, 20, 1000, 50
+        TabuSize = 20
 
-    progress = TS(BitNum, TabuSize, iteration)
-
-    for _ in range(Run):
-        sol, result = progress.RunAIEva(BitNum, TabuSize, iteration)
-        progress.G.Write2CSV(result, "./result", progress.name)
-
-    # Visualization of the result
-    y = progress.G.AvgResult(f"{progress.name}.csv")
-    progress.G.Draw(y, progress.name)
+    progress = TS(BitNum=100, TabuSize=TabuSize, iteration=1000, Run=50)
+    progress.AI()

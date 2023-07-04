@@ -1,9 +1,9 @@
+# precision: 6, 10e-6
 import sys
 import time
 
 import numpy as np
 from numpy import e, pi
-
 from Tool.Cal import cal
 
 
@@ -26,7 +26,7 @@ class PSO:
         self.w = Inertia
         self.a1 = a1  # alpha1
         self.a2 = a2  # alpha2
-        self.Constraint = EdgeConstraint  # Ths size of the edge
+        self.C = EdgeConstraint  # Ths size of the edge
         self.EvaTime = EvaTime
         self.SubSolNum = int((self.dim / self.step) ** 2)
 
@@ -38,7 +38,7 @@ class PSO:
         self.p = np.zeros((self.ParticleNum, 2), dtype=float)  # position
         self.s = []  # np.zeros((self.ParticleNum, self.SubSolNum, 2), dtype=float)
 
-        self.name = f"{self.ParticleNum}{self.a1}{self.a2}_PSO"
+        self.name = f"{self.dim}{self.ParticleNum}{self.a1}{self.a2}_PSO"
         self.Run = Run
         self.G = cal()
 
@@ -52,7 +52,7 @@ class PSO:
         )
 
     def RandVal(self):
-        return np.round(np.random.uniform(-self.Constraint, self.Constraint), 3)
+        return np.random.uniform(-self.C, self.C)
 
     def Rand2D(self):
         return np.array(
@@ -152,21 +152,24 @@ class PSO:
         return score
 
     def AI(self):
-        for _ in range(self.Run):
-            st = time.time()
+        print("============/START of the Evaluation/============")
+        st = time.time()
+        for Run_index in range(self.Run):
             result = self.RunAIEva()
-            self.G.Write2CSV(result, "./result", self.name)
-            if _ % 10 == 0:
+            self.G.Write2CSV(np.array(result), "./result", self.name)
+
+            if Run_index % 10 == 0:
                 print(
-                    "Run.{:<3}, Obj:{:<2}, Time:{:<3}".format(
-                        _, np.min(result), np.round(time.time() - st, 3)
+                    "Run.{:<2}, Obj:{:<2}, Time:{:<3}\n".format(
+                        Run_index,
+                        np.max(result),
+                        np.round(time.time() - st, 3),
                     )
                 )
 
-                print(f"Best solution:{result[-1]}")
-
         # Visualization of the result
         self.G.Draw(self.G.AvgResult(f"{self.name}.csv"), self.name)
+        print("============/END of the Evaluation/============")
 
 
 # 5 particle, 25 subsolution per particle
@@ -174,7 +177,7 @@ class PSO:
 # self.s = [ [[xx1,yy1],[xx2,yy2],..], [[xx1,yy1],[xx2,yy2],..], [..] ] (5,100,2)
 
 if __name__ == "__main__":
-    if len(sys.argv) == 10:
+    if len(sys.argv) == 8:
         ParticleNum = int(sys.argv[1])
         Dimension = int(sys.argv[2])
         EdgeConstraint = int(sys.argv[3])
@@ -182,13 +185,19 @@ if __name__ == "__main__":
         Inertia = float(sys.argv[5])
         a1 = float(sys.argv[6])
         a2 = float(sys.argv[7])
-        EvaTime = int(sys.argv[8])
-        Run = int(sys.argv[9])
 
     else:
-        ParticleNum, Dimension, EdgeConstraint, Step = 30, 2, 40, 1
+        ParticleNum, Dimension, EdgeConstraint, Step = 30, 10, 40, 1
         Inertia, a1, a2 = 0.8, 0.8, 0.5
-        EvaTime, Run = 80, 30
-
-    p = PSO(ParticleNum, Dimension, Step, Inertia, a1, a2, EvaTime, EdgeConstraint, Run)
+    p = PSO(
+        ParticleNum=ParticleNum,
+        Dimension=Dimension,
+        Step=Step,
+        Inertia=Inertia,
+        a1=a1,
+        a2=a2,
+        EdgeConstraint=EdgeConstraint,
+        EvaTime=1000,
+        Run=50,
+    )
     p.AI()

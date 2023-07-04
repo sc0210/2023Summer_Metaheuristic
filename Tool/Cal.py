@@ -45,10 +45,7 @@ class cal:
         # ax.xaxis.set_minor_locator(MultipleLocator(0.5))
         # ax.yaxis.set_minor_locator(MultipleLocator(0.005))
         plt.figure(figsize=(10, 6))  # Width: 8 inches, Height: 6 inches
-        plt.rcParams.update({
-            "text.usetex": True,
-            "font.family": "Helvetica"
-        })
+        plt.rcParams.update({"text.usetex": True, "font.family": "Helvetica"})
         plt.rcParams["font.size"] = 15
         plt.rcParams["legend.fontsize"] = 18
         plt.grid()
@@ -87,7 +84,7 @@ class cal:
                 AllData.append(row)
 
         # Convert AllData to a NumPy array
-        AllData = np.array(AllData, dtype="float")
+        AllData = np.array(AllData, dtype=float)
 
         # Calculate the average using NumPy
         AvgData = np.mean(AllData, axis=0)

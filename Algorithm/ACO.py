@@ -3,6 +3,7 @@ import sys
 import time
 
 import numpy as np
+
 from Algorithm.TSP import P
 from Tool.Cal import cal
 
@@ -259,7 +260,7 @@ if __name__ == "__main__":
         beta = 2  # 1 [0.5, 1, 1.5,..]
 
         # Non-Hyper
-        AntNum = 4  # City number
+        AntNum = 29  # City number
         EvalTime = 500
         Run = 20
 
