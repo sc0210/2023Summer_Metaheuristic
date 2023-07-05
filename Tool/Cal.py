@@ -1,5 +1,6 @@
 import csv
 import math
+import os
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -32,8 +33,8 @@ class cal:
                 dec += 2**idx
         return dec
 
-    def Write2CSV(self, data, filepath, filename):
-        with open(f"{filepath}/{filename}.csv", "a") as file:
+    def Write2CSV(self, data, FILE):
+        with open(FILE, "a") as file:
             writer = csv.writer(file)
             writer.writerow(data)
         # print("Export data to csv file")
@@ -75,10 +76,10 @@ class cal:
         if save:
             plt.savefig(f"./result/{filename}.png")
 
-    def AvgResult(self, filename):
+    def AvgResult(self, FILE):
         # Read multi-rows from csv file
         AllData = []
-        with open(f"./result/{filename}", "r") as file:
+        with open(f"{FILE}", "r") as file:
             csvreader = csv.reader(file)
             for row in csvreader:
                 AllData.append(row)
