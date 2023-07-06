@@ -16,24 +16,27 @@ Exhausive search, a brutal way to traverse all the possible solution by incremen
 ```shell
 #(I)Initialization
 count = 0 #[0,0,...,0.0,0]
-Fitness(count) = Local_fitness = Global_fitness
+Local_fitness = Global_fitness = Fitness(count)
 
 while not met termination condition:
 
     #(T)Transition
-    # find next solution (neighbor solution)
     count += 1
     Neghbor(count) = p #[0,0,...,0,0,1]
 
     #(E)Evaluaiton
-    # count the number of 1 bits in the solution
     Local_fitness = Fitness(p)
 
     #(D)Determination
-    # compare with, update if it gain better evaluation
     if Local_fitness > Global_fitness:
         Global_fitness = Local_fitness
+
+return GLobal_fitness
 ```
+
+- Transition: find next solution (neighbor solution) by incremental method
+- Evaluation: count the number of 1 bits in the solution
+- Determination: compare with, update if it gain better evaluation
 
 ## Flowchart
 
