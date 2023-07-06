@@ -40,7 +40,7 @@ return GLobal_fitness
 
 ## Flowchart
 
-![Flowchart](./ES_flowchart.svg)
+![Flowchart](./TED_flowchart.svg)
 
 ## Instructions for running on local machine
 
