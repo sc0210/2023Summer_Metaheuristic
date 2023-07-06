@@ -1,34 +1,18 @@
 # Metaheuristic
 
-## Parameter setting
+***Editor: Samchen (last updated 07062023)***
 
-1. Number of iterations:
-    - Single-solution problem: 1000 iterations
-    - Populaiotn-based problem: 1000 evaluations
-2. Runs: 50 (average results)
-3. Question definition:
-    - Single-solution problem: 01-max problem(100bits)
-    - Populaiotn-based problem: TSP datasets
+## **Overview**
 
-## Results
+Algo. name | Run time | Problem Type | Poblem Definition| Global Optimal
+:----:|:----:|:----:|:----:|:----:
+[Exhaustive Search](./document/ES.md) | 30 mins | Single-based | 01-max | 26 bits
+Tabu Search |  | Single-based | 01-max | 26 bits
+Genetic Algorithm |  | Populaiotn-based | 01-max | 26 bits
+Ant Colony Optimization |  | Populaiotn-based | TSP |
+Particle Swarm Optimization |  | Populaiotn-based | Ackely function | (0,0)
+---
 
-- Exhaust Search
-![ES-result](./result/ES.png)
+## **Hyperlink for each description**
 
-- Hill Climbing
-![HC-result](./result/HC.png)
-
-- Stimulated Annealing
-![SA-result](./result/10_SA.png)
-
-- Tabu Search
-![TS-result](./result/20_TS.png)
-
-- Genetic Algorithm
-![GA-result](./result/0.90.31007_GA.png)
-
-- Ant Colony Optimization
-![ACO-result](./result/2932500_ACO.png)
-
-- Particle Swarm Optimization
-![PSO-result](./result/10300.80.5_PSO.png)
+[Exhaustive Search](./document/ES.md)

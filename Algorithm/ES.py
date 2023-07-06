@@ -57,16 +57,16 @@ class ES:
         # Average the result from multiple runs
         for Run_index in range(self.Run):
             sol, fitness_result = self.RunAIEva()
-            self.G.Write2CSV(np.array(fitness_result), f"./result/{self.name}")
+            self.G.Write2CSV(np.array(fitness_result), f"./result/{self.name}.csv")
 
             print(
-                "Run.{:<2}, Obj:{:<2}, Time:{:<3}\n".format(
+                "Run.{:<2}, Obj:{:<2}, Time:{:<3}s\n".format(
                     Run_index, np.max(fitness_result), np.round(time.time() - st, 3)
                 )
             )
 
         # Result visualization
-        self.G.Draw(self.G.AvgResult(f"./result/{self.name}"), self.name)
+        self.G.Draw(self.G.AvgResult(f"./result/{self.name}.csv"), self.name)
         print("============/END of the Evaluation/============")
 
 
