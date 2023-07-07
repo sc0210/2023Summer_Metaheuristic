@@ -1,3 +1,4 @@
+import os
 import random
 import sys
 import time
@@ -28,13 +29,12 @@ class SA:
 
     def RunAIEva(self):
         """Simulated annealing, SA"""
-
-        # Initialization
+        # (I) Initialization
+        self.cnt = 0
         Global_sol = np.array([random.randint(0, 1) for _ in range(self.BitNum)])
         Global_fitness = self.Fitness(Global_sol)
         solution_db = [Global_sol.tolist()]
         fitness_db = [Global_fitness]
-        self.cnt = 0
 
         while self.cnt <= (self.iteration - 1) and (self.temperature > 0):
             # (T) Transition
@@ -66,22 +66,29 @@ class SA:
     def AI(self):
         print("============/START of the Evaluation/============")
         st = time.time()
+        if not os.path.isdir("./result/"):
+            os.makedirs("./result")
+
+        # Average the result from multiple runs
         for Run_index in range(self.Run):
-            sol, result = self.RunAIEva()
-            self.G.Write2CSV(np.array(result), "./result", self.name)
+            sol, fitness_result = self.RunAIEva()
+            self.G.Write2CSV(np.array(fitness_result), f"./result/{self.name}.csv")
 
             if Run_index % 10 == 0:
                 print(
                     "Run.{:<2}, Obj:{:<2}, Time:{:<3}\nBest solution:{}\n".format(
                         Run_index,
-                        np.max(result),
+                        np.max(fitness_result),
                         np.round(time.time() - st, 3),
                         [sol[-1]],
                     )
                 )
 
-        # Visualization of the result
-        self.G.Draw(self.G.AvgResult(f"{self.name}.csv"), self.name)
+        # Result visualization
+        AvgResult = self.G.AvgResult(f"./result/{self.name}.csv")
+        self.G.Draw(AvgResult, self.name)
+        end = time.time()
+        print(f"Average max: {np.max(AvgResult)}, Total runtime: {end-st} sec")
         print("============/END of the Evaluation/============")
 
 

@@ -1,3 +1,4 @@
+import os
 import random
 import sys
 import time
@@ -155,22 +156,29 @@ class GA:
     def AI(self):
         print("============/START of the Evaluation/============")
         st = time.time()
+        if not os.path.isdir("./result/"):
+            os.makedirs("./result")
+
+        # Average the result from multiple runs
         for Run_index in range(self.Run):
-            sol, result = self.RunAIEva()
-            self.G.Write2CSV(result, "./result", self.name)
+            sol, fitness_result = self.RunAIEva()
+            self.G.Write2CSV(fitness_result, f"./result/{self.name}.csv")
 
             if Run_index % 10 == 0:
                 print(
                     "Run.{:<2}, Obj:{:<2}, Time:{:<3}\nBest solution:{}\n".format(
                         Run_index,
-                        np.max(result),
+                        np.max(fitness_result),
                         np.round(time.time() - st, 3),
                         [sol[-1]],
                     )
                 )
 
-        # Visualization of the result
-        self.G.Draw(self.G.AvgResult(f"{self.name}.csv"), self.name)
+        # Result visualization
+        AvgResult = self.G.AvgResult(f"./result/{self.name}.csv")
+        self.G.Draw(AvgResult, self.name)
+        end = time.time()
+        print(f"Average max: {np.max(AvgResult)}, Total runtime: {end-st} sec")
         print("============/END of the Evaluation/============")
 
 

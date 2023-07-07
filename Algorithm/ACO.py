@@ -1,3 +1,4 @@
+import os
 import random
 import sys
 import time
@@ -226,14 +227,22 @@ class ACO(P):
         return score
 
     def AI(self):
-        for _ in range(self.Run):
-            result = self.RunAIEva()
-            print(f"Run:{_}, score ={result[-1]}")
-            self.G.Write2CSV(data=result, filepath="./result", filename=self.name)
+        st = time.time()
+        for Run_index in range(self.Run):
+            fitness_result = self.RunAIEva()
+            if Run_index % 10 == 0:
+                print(
+                    "Run.{:<2}, Obj:{:<2}, Time:{:<3}\n".format(
+                        Run_index, fitness_result[-1], np.round(time.time() - st, 3)
+                    )
+                )
+            self.G.Write2CSV(fitness_result, f"./result/{self.name}.csv")
 
-        # Visualization of the result
-        y = self.G.AvgResult(filename=f"{self.name}.csv")
-        self.G.Draw(y=y, filename=self.name)
+        # Result visualization
+        AvgResult = self.G.AvgResult(f"./result/{self.name}.csv")
+        self.G.Draw(AvgResult, self.name)
+        end = time.time()
+        print(f"Average max: {np.max(AvgResult)}, Total runtime: {end-st} sec")
 
 
 if __name__ == "__main__":
