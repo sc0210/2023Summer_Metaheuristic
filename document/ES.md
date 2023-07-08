@@ -36,7 +36,7 @@ return GLobal_fitness
 
 - Transition: find next solution (neighbor solution) by incremental method
 - Evaluation: count the number of 1 bits in the solution
-- Determination: compare with, update if it gain better evaluation
+- Determination: compare with global optimal, update if it gain better evaluation
 
 ## Flowchart
 

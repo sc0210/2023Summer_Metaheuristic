@@ -1,14 +1,16 @@
-# Hill Climbing
+# Tabu Search
 
 ## Overview
 
-Hill Climbing, modify the selection of picking neighbor solution by adding slightly movement compared to the current solution, in order to gain the optimal solution.
+Tabu Search, introduce the idea of tabu-list that reduce picking repeat solution in every iterations, in order to gain the optimal solution.
 
 - pros:
-    1. Time efficient
+    1. Reach more soluiton diversity
+    2. Avoid continuously searching same solution
 
 - cons:
     1. Might caught into local optimal
+    2. Tabulist size varies to different question
 
 ## Pseduocode
 
@@ -21,6 +23,10 @@ while not met termination condition:
 
     #(T)Transition
     NeghborSolution(v) = p
+    # Tabu-list mechanism
+    while p in Tabulist:
+        NeghborSolution(v) = p
+    Update_tabulist(p)
 
     #(E)Evaluaiton
     Local_fitness = Fitness(p)
@@ -32,7 +38,7 @@ while not met termination condition:
 return Global_fitness
 ```
 
-- Transition: find next solution (neighbor solution) by only modify one bits in the solution (add slightly movement)
+- Transition: find next solution (neighbor solution) by only modify one bits in the solution (add slightly movement) and check whether the solution is in tabulist(regenerate a solution when there the solution duplicate)
 - Evaluation: count the number of 1 bits in the solution
 - Determination: compare with global optimal, update if it gain better evaluation
 
@@ -51,7 +57,8 @@ return Global_fitness
 2. Run code
 
     ```shell
-    python -m Algorithm.HC
+    # sys.argv[1]: tabulist size
+    python -m Algorithm.TS 20
     ```
 
 3. Folder organiation
@@ -60,4 +67,4 @@ return Global_fitness
         - {filename}.png: show the trend/process of certain algo.
         - {filename}.csv: record every global optimal in every iterations
     - Check all the result in [**result**](../result/) folder
-    - ![result for exhausive search](../result/HC.png)
+    - ![result for exhausive search](../result/20_TS.png)
