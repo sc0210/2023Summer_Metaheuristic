@@ -50,7 +50,7 @@ return GLobal_fitness
     - matplotlib==3.7.1
     - pandas==1.5.3
 
-2. Run code
+2. Execution
 
     ```shell
     python -m Algorithm.ES
