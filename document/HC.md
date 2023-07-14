@@ -32,8 +32,8 @@ while not met termination condition:
 return Global_fitness
 ```
 
-- Transition: find next solution (neighbor solution) by only modify one bits in the solution (add slightly movement), we provide two modes to operate:
-  - LR: Modify by either chose to increament of descerasement direction
+- Transition: find next solution (neighbor solution) by only modify one bit in the solution (add slightly movement), we provide two modes to operate:
+  - LR: Modify by either increment or decrement direction against to recent solution
   - Rand: Randomly pick one bit in the string and modify it (1->0 or 0->1)
 
 - Evaluation: count the number of 1 bits in the solution
