@@ -27,9 +27,10 @@ class cal:
 
     def bin2dec(self, bin, BitNum):
         dec = 0
+        rev_bin = bin[::-1]
         for idx in range(BitNum):
             # bit wise operation
-            if bin & (1 << idx):  # bin[::-1][idx] == 1
+            if rev_bin[idx] == 1:  # bin.any() & (1 << idx):
                 dec += 2**idx
         return dec
 
