@@ -32,7 +32,10 @@ while not met termination condition:
 return Global_fitness
 ```
 
-- Transition: find next solution (neighbor solution) by only modify one bits in the solution (add slightly movement)
+- Transition: find next solution (neighbor solution) by only modify one bits in the solution (add slightly movement), we provide two modes to operate:
+  - LR: Modify by either chose to increament of descerasement direction
+  - Rand: Randomly pick one bit in the string and modify it (1->0 or 0->1)
+
 - Evaluation: count the number of 1 bits in the solution
 - Determination: compare with global optimal, update if it gain better evaluation
 
@@ -48,10 +51,11 @@ return Global_fitness
     - matplotlib==3.7.1
     - pandas==1.5.3
 
-2. Run code
+2. Execution
 
     ```shell
-    python -m Algorithm.HC
+    python -m Algorithm.HC {mode}
+    # mode = Rand | LR
     ```
 
 3. Folder organiation
@@ -60,4 +64,5 @@ return Global_fitness
         - {filename}.png: show the trend/process of certain algo.
         - {filename}.csv: record every global optimal in every iterations
     - Check all the result in [**result**](../result/) folder
-    - ![result for exhausive search](../result/HC.png)
+    - ![result for hill climbing with LR](../result/HC_withLR.png)
+    - ![result for hill climbing with Rand](../result/HC_withRand.png)

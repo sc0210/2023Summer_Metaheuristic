@@ -1,5 +1,6 @@
 import os
 import random
+import sys
 import time
 
 import numpy as np
@@ -8,25 +9,26 @@ from Tool.Cal import cal
 
 
 class HC:
-    def __init__(self, BitNum, iteration, Run):
+    def __init__(self, Mode, BitNum, iteration, Run):
         self.BitNum = BitNum
         self.iteration = iteration
         self.Run = Run
-        self.name = "HC"
+        self.mode = mode
+        self.name = f"HC_with{self.mode}"
         self.G = cal()
         self.cnt = 0
 
     def Fitness(self, curr):
         return np.sum(curr)
 
-    def Neighbor(self, curr, Mode="Rand"):
+    def Neighbor(self, curr, Mode):
         if Mode == "Rand":
             ShiftBit = random.randint(0, self.BitNum - 1)
             new_curr = curr.copy()
             new_curr[ShiftBit] = 1 - new_curr[ShiftBit]
         elif Mode == "LR":
-            # chose = random.randint(0, 1)
-            chose = 1
+            chose = random.randint(0, 1)
+            # chose = 1
             if chose == 1:
                 tmp = (self.G.bin2dec(curr, self.BitNum) - 1) % self.BitNum
             else:
@@ -37,7 +39,7 @@ class HC:
 
         return new_curr
 
-    def RunAIEva(self, Mode="Rand"):
+    def RunAIEva(self):
         """Hill Climbing, HC"""
         # (I) Initialize by random
         Global_sol = np.array([random.randint(0, 1) for _ in range(0, self.BitNum)])
@@ -48,7 +50,7 @@ class HC:
 
         while self.cnt < self.iteration:
             # (T)Transition
-            neighbor_sol = self.Neighbor(Global_sol, Mode=Mode)
+            neighbor_sol = self.Neighbor(Global_sol, Mode=self.mode)
 
             # (E)Evaluation
             Local_fitness = self.Fitness(neighbor_sol)
@@ -93,5 +95,10 @@ class HC:
 
 
 if __name__ == "__main__":
-    p = HC(BitNum=100, iteration=1000, Run=50)
+    if len(sys.argv) == 2:
+        mode = str(sys.argv[1])
+    else:
+        mode = "Rand"  # Two mode:Rand or LR
+
+    p = HC(Mode=mode, BitNum=100, iteration=1000, Run=51)
     p.AI()
