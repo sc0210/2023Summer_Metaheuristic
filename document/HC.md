@@ -64,5 +64,14 @@ return Global_fitness
         - {filename}.png: show the trend/process of certain algo.
         - {filename}.csv: record every global optimal in every iterations
     - Check all the result in [**result**](../result/) folder
-    - ![result for hill climbing with LR](../result/HC_withLR.png)
-    - ![result for hill climbing with Rand](../result/HC_withRand.png)
+        ![result for hill climbing with LR](../result/HC_withLR.png)
+        ![result for hill climbing with Rand](../result/HC_withRand.png)
+
+4. Dissusion (Two approachs in transition)
+    - with LR:
+
+        since in every iteration you can either choose two directions at random against its current solution, it is more easily caught into the local optimal. (example: when current is “00010”, I can only choose “00011” or “00001”) Moreover, from the perspective of distribution in this 100 bits one-max problem, roughly 50 bits account the most. Though, we randomly start in every run, the final result of 51 runs, the average result is 51.2.
+
+    - with Rand:
+
+        Different from the method of “LR”, “Rand” provides a more global(wide) search approach to reach a better solution (example: when current is “00010”, I can have 5 options “10010” “01010” “00110” “00000” “00011”), and update the answer when it gains a better evaluation.
