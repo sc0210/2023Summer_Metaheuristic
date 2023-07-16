@@ -68,7 +68,7 @@ class HC:
         return sol_db, fitness_db
 
     def AI(self):
-        print("============/START of the Evaluation/============")
+        print("\n============/START of the Evaluation/============")
         st = time.time()
         if not os.path.isdir("./result/"):
             os.makedirs("./result")
@@ -93,34 +93,16 @@ class HC:
         self.G.Draw(AvgResult, self.name)
         end = time.time()
         print(f"Average max: {np.max(AvgResult)}, Total runtime: {end-st} sec")
-        print("============/END of the Evaluation/============")
-
-
-def AvgData(FILE):
-    Data = []
-    with open(f"./result/{FILE}.csv", "r") as file:
-        csvreader = csv.reader(file)
-        for row in csvreader:
-            Data.append(row)
-    Data = np.array(Data, dtype=float)
-    Data = np.mean(Data, axis=0)
-    return Data
+        print("============/END of the Evaluation/============\n")
 
 
 if __name__ == "__main__":
-    # if len(sys.argv) == 2:
-    #     mode = str(sys.argv[1])
-    # else:
-    #     mode = "Rand"  # Two mode:Rand or LR
-
     # Run algorithm
-    c1 = HC(Mode="Rand", BitNum=100, iteration=1000, Run=51)
-    c2 = HC(Mode="LR", BitNum=100, iteration=1000, Run=51)
-    c1.AI()
-    c2.AI()
-
-    Rand_Data = AvgData("HC_withRand")
-    LR_Data = AvgData("HC_withLR")
+    tool = cal()
+    mode = ["Rand", "LR"]  # Two modes in transition
+    for m in mode:
+        m = HC(Mode=m, BitNum=100, iteration=1000, Run=51)
+        m.AI()
 
     # plotting
     plt.figure(figsize=(10, 6))  # Width: 8 inches, Height: 6 inches
@@ -129,10 +111,10 @@ if __name__ == "__main__":
     plt.rcParams["legend.fontsize"] = 18
     plt.grid()
 
-    x = np.arange(0, len(LR_Data), 1)
+    x = np.arange(0, len(tool.AvgResult("./result/HC_withRand.csv")), 1)
     plt.plot(
         x,
-        LR_Data,
+        tool.AvgResult("./result/HC_withLR.csv"),
         ls="--",
         marker=".",
         markerfacecolor="k",
@@ -140,7 +122,7 @@ if __name__ == "__main__":
     )
     plt.plot(
         x,
-        Rand_Data,
+        tool.AvgResult("./result/HC_withRand.csv"),
         ls="--",
         marker=".",
         markerfacecolor="k",
