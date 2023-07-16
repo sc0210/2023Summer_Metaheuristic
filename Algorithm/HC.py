@@ -1,8 +1,10 @@
+import csv
 import os
 import random
 import sys
 import time
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 from Tool.Cal import cal
@@ -13,7 +15,7 @@ class HC:
         self.BitNum = BitNum
         self.iteration = iteration
         self.Run = Run
-        self.mode = mode
+        self.mode = Mode
         self.name = f"HC_with{self.mode}"
         self.G = cal()
         self.cnt = 0
@@ -94,11 +96,60 @@ class HC:
         print("============/END of the Evaluation/============")
 
 
-if __name__ == "__main__":
-    if len(sys.argv) == 2:
-        mode = str(sys.argv[1])
-    else:
-        mode = "Rand"  # Two mode:Rand or LR
+def AvgData(FILE):
+    Data = []
+    with open(f"./result/{FILE}.csv", "r") as file:
+        csvreader = csv.reader(file)
+        for row in csvreader:
+            Data.append(row)
+    Data = np.array(Data, dtype=float)
+    Data = np.mean(Data, axis=0)
+    return Data
 
-    p = HC(Mode=mode, BitNum=100, iteration=1000, Run=51)
-    p.AI()
+
+if __name__ == "__main__":
+    # if len(sys.argv) == 2:
+    #     mode = str(sys.argv[1])
+    # else:
+    #     mode = "Rand"  # Two mode:Rand or LR
+
+    # Run algorithm
+    c1 = HC(Mode="Rand", BitNum=100, iteration=1000, Run=51)
+    c2 = HC(Mode="LR", BitNum=100, iteration=1000, Run=51)
+    c1.AI()
+    c2.AI()
+
+    Rand_Data = AvgData("HC_withRand")
+    LR_Data = AvgData("HC_withLR")
+
+    # plotting
+    plt.figure(figsize=(10, 6))  # Width: 8 inches, Height: 6 inches
+    plt.rcParams.update({"text.usetex": True, "font.family": "Helvetica"})
+    plt.rcParams["font.size"] = 15
+    plt.rcParams["legend.fontsize"] = 18
+    plt.grid()
+
+    x = np.arange(0, len(LR_Data), 1)
+    plt.plot(
+        x,
+        LR_Data,
+        ls="--",
+        marker=".",
+        markerfacecolor="k",
+        label="LR",
+    )
+    plt.plot(
+        x,
+        Rand_Data,
+        ls="--",
+        marker=".",
+        markerfacecolor="k",
+        label="Rand",
+    )
+    plt.xlabel("Number of iteration")
+    plt.ylabel("Object value")
+    plt.title("Hill climibing")
+    plt.legend()
+
+    plt.savefig("./result/HC_combine.png")
+    plt.show()

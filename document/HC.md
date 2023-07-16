@@ -54,8 +54,8 @@ return Global_fitness
 2. Execution
 
     ```shell
-    python -m Algorithm.HC {mode}
-    # mode = Rand | LR
+    python -m Algorithm.HC
+    # program will run through two mode(includeing "Rand" and "LR")
     ```
 
 3. Folder organiation
@@ -64,8 +64,7 @@ return Global_fitness
         - {filename}.png: show the trend/process of certain algo.
         - {filename}.csv: record every global optimal in every iterations
     - Check all the result in [**result**](../result/) folder
-        ![result for hill climbing with LR](../result/HC_withLR.png)
-        ![result for hill climbing with Rand](../result/HC_withRand.png)
+        ![result for hill climbing with combined](../result/HC_combine.png)
 
 4. Dissusion (Two approachs in transition)
     - with LR:
