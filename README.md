@@ -8,7 +8,7 @@ Algo. name | Total Runtime | Problem Type | Poblem Definition| Global Optimal
 :----|:----:|:----:|:----:|:----:
 [Exhaustive Search](./document/ES.md) | 30 mins | Single-based | Onemax-100bits | 26 bits
 [Hill Climbing](./document/HC.md)| 0.591s | Single-based | Onemax-100bits | 100 bits
-[Stimulated Annealing](./document/SA.md) | 0.680s | Single-based | Onemax-100bits | 99.96 bits
+[Simulated Annealing](./document/SA.md) | 0.680s | Single-based | Onemax-100bits | 99.96 bits
 [Tabu Search](./document/TS.md) | 6.697s | Single-based | Onemax-100bits | 99.99 bits
 [Genetic Algorithm](./document/GA.md) | 3.833s | Populaiotn-based | Onemax-100bits | 65.94 bits
 [Ant Colony Optimization](./document/) |  | Populaiotn-based | TSP-bays29.tsp |

@@ -59,7 +59,7 @@ for _ in range(Run):
 groups = [
     "Exhaust Search",
     "Hill Climbing",
-    "Stimulated Annealing",
+    "Simulated Annealing",
     "Tabu Search",
     "Genetic Algorithm",
 ]
