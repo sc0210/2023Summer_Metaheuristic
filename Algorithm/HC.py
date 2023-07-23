@@ -16,7 +16,7 @@ class HC:
         self.iteration = iteration
         self.Run = Run
         self.mode = Mode
-        self.name = f"HC_with{self.mode}"
+        self.name = f"{self.__class__.__name__ }_with{self.mode}"
         self.G = cal()
         self.cnt = 0
 
@@ -51,13 +51,13 @@ class HC:
         self.cnt = 0
 
         while self.cnt < self.iteration:
-            # (T)Transition
+            # (T) Transition
             neighbor_sol = self.Neighbor(Global_sol, Mode=self.mode)
 
-            # (E)Evaluation
+            # (E) Evaluation
             Local_fitness = self.Fitness(neighbor_sol)
 
-            # (D)Determine
+            # (D) Determine
             if Local_fitness > Global_fitness:
                 Global_sol = neighbor_sol.copy()
                 Global_fitness = Local_fitness
@@ -88,50 +88,24 @@ class HC:
                     )
                 )
 
-        # Result visualization
+        # Avg result
         AvgResult = self.G.AvgResult(f"./result/{self.name}.csv")
-        self.G.Draw(AvgResult, self.name)
         end = time.time()
         print(f"Average max: {np.max(AvgResult)}, Total runtime: {end-st} sec")
         print("============/END of the Evaluation/============\n")
 
 
 if __name__ == "__main__":
-    # Run algorithm
+    # Hyperparameters
+    Group = ["Rand", "LR"]  # Transition methods
+
+    # Main algorithm loop
+    for ii in Group:
+        w = HC(Mode=ii, BitNum=100, iteration=1000, Run=51)
+        w.AI()  # store result in repective folder(.csv)
+
+    # Plotting
     tool = cal()
-    mode = ["Rand", "LR"]  # Two modes in transition
-    for m in mode:
-        m = HC(Mode=m, BitNum=100, iteration=1000, Run=51)
-        m.AI()
-
-    # plotting
-    plt.figure(figsize=(10, 6))  # Width: 8 inches, Height: 6 inches
-    plt.rcParams.update({"text.usetex": True, "font.family": "Helvetica"})
-    plt.rcParams["font.size"] = 15
-    plt.rcParams["legend.fontsize"] = 18
-    plt.grid()
-
-    x = np.arange(0, len(tool.AvgResult("./result/HC_withRand.csv")), 1)
-    plt.plot(
-        x,
-        tool.AvgResult("./result/HC_withLR.csv"),
-        ls="--",
-        marker=".",
-        markerfacecolor="k",
-        label="LR",
-    )
-    plt.plot(
-        x,
-        tool.AvgResult("./result/HC_withRand.csv"),
-        ls="--",
-        marker=".",
-        markerfacecolor="k",
-        label="Rand",
-    )
-    plt.xlabel("Number of iteration")
-    plt.ylabel("Object value")
-    plt.title("Hill climibing")
-    plt.legend()
-
-    plt.savefig("./result/HC_combine.png")
-    plt.show()
+    data_list = [f"HC_with{idx}" for idx in Group]
+    p = tool.multiplot("./result/", data_list, "HC_combine")
+    p.show()

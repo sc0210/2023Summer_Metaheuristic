@@ -49,7 +49,6 @@ return Global_fitness
 
     - numpy==1.24.2
     - matplotlib==3.7.1
-    - pandas==1.5.3
 
 2. Execution
 
@@ -65,6 +64,9 @@ return Global_fitness
         - {filename}.csv: record every global optimal in every iterations
     - Check all the result in [**result**](../result/) folder
         ![result for hill climbing with combined](../result/HC_combine.png)
+        - Global optimal solution(average from 51 runs):
+            - withLR: **51.2 bits**
+            - withRand: **100 bits**
 
 4. Dissusion (Two approachs in transition)
     - with LR:
