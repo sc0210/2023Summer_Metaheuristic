@@ -6,61 +6,62 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 
-from Problem.onemax import Onemax
+from Problem.deceptive import Deception
 from Tool.Cal import cal
 
 
-class SA(Onemax):
-    def __init__(self, BitNum, iteration, temperature, Run):
-        self.BitNum = BitNum
+class SA_D(Deception):
+    def __init__(self, n, iteration, temperature, Run):
+        super().__init__(n)
         self.iteration = iteration
         self.temperature = temperature
         self.Run = Run
-        self.name = f"{self.__class__.__name__ }_{self.BitNum}_{self.temperature}"
+        self.name = f"{self.__class__.__name__ }_{self.n}_{self.temperature}"
         self.G = cal()
 
     def Neighbor(self, curr):
         """Return neighborhod solution(Transition)"""
-        shiftbit = random.randint(0, self.BitNum - 1)
+        shiftbit = random.randint(0, self.n - 1)
         new_curr = curr.copy()
         new_curr[shiftbit] = 1 - new_curr[shiftbit]
         return new_curr
 
     def RunAIEva(self):
-        """Simulated annealing, SA"""
+        """Simulated annealing, self"""
         # (I) Initialization
         self.cnt = 0
-        Global_sol = np.array([random.randint(0, 1) for _ in range(self.BitNum)])
+
+        Global_sol = np.array([random.randint(0, 1) for _ in range(self.n)])
         Global_fitness = self.Fitness(Global_sol)
-        solution_db = [Global_sol.tolist()]
+        sol_db = [Global_sol.tolist()]
         fitness_db = [Global_fitness]
 
-        while self.cnt <= (self.iteration - 1) and (self.temperature > 0):
+        while self.cnt <= (self.iteration - 2) and (self.temperature > 0):
             # (T) Transition
-            neighbor_solution = self.Neighbor(Global_sol)
-            neighbor_fitness = self.Fitness(neighbor_solution)
+            neighbor_sol = self.Neighbor(Global_sol)
 
-            # (E) Calculate the acceptance probability based on the current temperature
+            # (E) Evaluation & calculate the acceptance probability
+            neighbor_fitness = self.Fitness(neighbor_sol)
             delta_fitness = neighbor_fitness - Global_fitness
             acceptance_prob = min(
                 1, np.exp(delta_fitness / self.temperature)
             )  # negative ->[0,1]
 
-            # (D) update the current solution
+            # (D) Determine
             if neighbor_fitness > Global_fitness:
-                Global_sol = neighbor_solution.copy()
+                Global_sol = neighbor_sol.copy()
                 Global_fitness = neighbor_fitness
                 # print(f"Accept better {neighbor_fitness}/{curr_fitness}_{i}")
-            elif random.random() < acceptance_prob:
-                Global_sol = neighbor_solution.copy()
-                Global_fitness = neighbor_fitness
-                self.temperature *= 0.95
-                # print(f"Accept SA  {neighbor_fitness}/{curr_fitness}_{i}")
+            # elif random.random() < acceptance_prob:
+            #     Global_sol = neighbor_sol.copy()
+            #     Global_fitness = neighbor_fitness
+            #     self.temperature *= 0.95
+            #     # print(f"Accept self  {neighbor_fitness}/{curr_fitness}_{i}")
 
-            solution_db.append(Global_sol.tolist())
+            sol_db.append(Global_sol.tolist())
             fitness_db.append(Global_fitness)
             self.cnt += 1
-        return solution_db, fitness_db
+        return self.GT, sol_db, fitness_db
 
     def AI(self):
         print("============/START of the Evaluation/============")
@@ -70,16 +71,19 @@ class SA(Onemax):
 
         # Average the result from multiple runs
         for Run_index in range(self.Run):
-            sol, fitness_result = self.RunAIEva()
-            self.G.Write2CSV(np.array(fitness_result), f"./result/{self.name}.csv")
+            gt_sol, sol, fitness_result = self.RunAIEva()
+            self.G.Write2CSV(
+                np.array(fitness_result), f"./result/{self.name}.csv"
+            )  # store processing csv file in result folder
 
             if Run_index % 10 == 0:
                 print(
-                    "Run.{:<2}, Obj:{:<2}, Time:{:<3}\nBest solution:{}\n".format(
+                    "Run.{:<2}, Obj:{:<2}, Time:{:<3}\nGT:{}, Best solution:{}\n".format(
                         Run_index,
                         np.max(fitness_result),
                         np.round(time.time() - st, 3),
-                        [sol[-1]],
+                        gt_sol,
+                        sol[-1],
                     )
                 )
 
@@ -97,12 +101,15 @@ if __name__ == "__main__":
     else:
         temperature = 10
 
-    # Main algorithm loop
-    w = SA(BitNum=100, iteration=1000, temperature=temperature, Run=51)
-    w.AI()  # store result in repective folder(.csv)
+    Group = [4, 10, 100]  # n (deception problem's prameters)
 
-    # Plotting
+    # Main algorithm loop
+    for ii in Group:
+        w = SA_D(n=ii, iteration=1000, temperature=temperature, Run=51)
+        w.AI()  # store result in repective folder(.csv)
+
+    # Ploting
     tool = cal()
-    data_list = [f"SA_{100}_{temperature}"]
-    p = tool.multiplot("./result/", data_list, "SA_combine")
-    p.show()
+    data_list = [f"SA_D_{idx}_{temperature}" for idx in Group]
+    p = tool.multiplot("./result/", data_list, "SA_D_combine")
+    # p.show()
