@@ -66,7 +66,7 @@ return Global_fitness
     # One-max problem 
     python -m Algorithm.SA 10 # sys.argv[1]: temperature
 
-    # Preceptive problem
+    # Preception problem
     python -m Algorithm.SA_D 10 # sys.argv[1]: temperature
 
     ```
