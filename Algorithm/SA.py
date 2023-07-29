@@ -6,18 +6,22 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 
-from Problem.onemax import Onemax
+from Problem.problem import Problem
 from Tool.Cal import cal
 
 
-class SA(Onemax):
-    def __init__(self, BitNum, iteration, temperature, Run):
-        self.BitNum = BitNum
-        self.iteration = iteration
-        self.temperature = temperature
-        self.Run = Run
-        self.name = f"{self.__class__.__name__ }_{self.BitNum}_{self.temperature}"
+class SA(Problem):
+    def __init__(self, p, BitNum, iteration, temperature, Run):
+        super().__init__(p=p, BitNum=BitNum)
+        # packages
         self.G = cal()
+        # simulate annealing
+        self.temperature = float(temperature)
+        # problem
+        self.BitNum = int(BitNum)
+        self.iteration = int(iteration)
+        self.Run = int(Run)
+        self.name = f"SA_{self.problem}_{self.BitNum}_{self.temperature}"
 
     def Neighbor(self, curr):
         """Return neighborhod solution(Transition)"""
@@ -92,17 +96,33 @@ class SA(Onemax):
 
 if __name__ == "__main__":
     # Hyperparameters
-    if len(sys.argv) == 2:
-        temperature = int(sys.argv[1])
+    if len(sys.argv) == 3:
+        p = str(sys.argv[1])  # Problem: Onemax or Deception
+        temperature = float(sys.argv[2])
     else:
         temperature = 10
 
-    # Main algorithm loop
-    w = SA(BitNum=100, iteration=1000, temperature=temperature, Run=51)
-    w.AI()  # store result in repective folder(.csv)
+    if p == "O" or p == "o":
+        p = "Onemax"
+    elif p == "D" or p == "d":
+        p = "Deception"
+
+    # Main algorithm loop(Onemax)
+    tool = cal()
+    # w = SA(p=p, BitNum=100, iteration=1000, temperature=temperature, Run=51)
+    # w.AI()  # store result in repective folder(.csv)
+    # # Plotting
+    # pp = tool.multiplot("./result/", [f"SA_{p}_{100}_{temperature}"], f"SA_{p}_combine")
+    # pp.show()
+
+    # Main algorithm loop(Deception n = 4,10)
+    datalist = [4, 10]
+    for i in datalist:
+        v = SA(p=p, BitNum=i, iteration=1000, temperature=temperature, Run=51)
+        v.AI()  # store result in repective folder(.csv)
 
     # Plotting
-    tool = cal()
-    data_list = [f"SA_{100}_{temperature}"]
-    p = tool.multiplot("./result/", data_list, "SA_combine")
-    p.show()
+    pp = tool.multiplot(
+        "./result/", [f"SA_{p}_{i}_{temperature}" for i in datalist], f"SA_{p}_combine"
+    )
+    pp.show()
