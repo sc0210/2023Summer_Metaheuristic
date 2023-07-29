@@ -87,7 +87,7 @@ return Global_fitness
         **Zoom in for details**
         ![result for Simulated annealing(Zoom)](../result/SA_Deception_Problem(zoom).png)
 
-4. Dissusion
+4. Discussion
     - Simulated annealing(SA) improve the ability of global search by intorducing annealing process, and less likely to caught into local optimal (as hill climbing might be).
 
     - From the figure below. In deception problem, We found that with the increasement in n, SA shows more effective than HC. The possible reason might be the annealing process in SA, it optimize the proccess of wide search.

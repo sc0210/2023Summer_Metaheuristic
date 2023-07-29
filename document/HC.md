@@ -68,7 +68,7 @@ return Global_fitness
             - withLR: **51.2 bits**
             - withRand: **100 bits**
 
-4. Dissusion (Two approachs in transition)
+4. Discussion (Two approachs in transition)
     - with LR:
 
         since in every iteration you can either choose two directions at random against its current solution, it is more easily caught into the local optimal. (example: when current is “00010”, I can only choose “00011” or “00001”) Moreover, from the perspective of distribution in this 100 bits one-max problem, roughly 50 bits account the most. Though, we randomly start in every run, the final result of 51 runs, the average result is 51.2.

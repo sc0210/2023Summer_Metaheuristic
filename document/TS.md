@@ -52,13 +52,12 @@ return Global_fitness
 
     - numpy==1.24.2
     - matplotlib==3.7.1
-    - pandas==1.5.3
 
 2. Run code
 
     ```shell
-    # sys.argv[1]: tabulist size
-    python -m Algorithm.TS 20
+    # python -m Algorithm.TS [problem Type] [tabulist size]
+    python -m Algorithm.TS Onemax 20
     ```
 
 3. Folder organiation
@@ -67,4 +66,7 @@ return Global_fitness
         - {filename}.png: show the trend/process of certain algo.
         - {filename}.csv: record every global optimal in every iterations
     - Check all the result in [**result**](../result/) folder
-    - ![result for exhausive search](../result/20_TS.png)
+    - ![result for exhausive search](../result/TS_Onemax_combine.png)
+
+4. Discussion
+    - Tabu search provides an alternative approach in transition by avoiding picking the same solution in a certain condition, tabu list size plays a crucial role in this condition. As a result, tabu search expands the search region, and decreases the possibility of falling into local optimum.
