@@ -7,48 +7,50 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 
+from Problem.problem import Problem
 from Tool.Cal import cal
 
 
-class HC:
-    def __init__(self, Mode, BitNum, iteration, Run):
-        self.BitNum = BitNum
-        self.iteration = iteration
-        self.Run = Run
-        self.mode = Mode
-        self.name = f"{self.__class__.__name__ }_with{self.mode}"
+class HC(Problem):
+    def __init__(self, p, Mode, BitNum, iteration, Run):
+        super().__init__(p=p, n=BitNum)
+        # packages
         self.G = cal()
-        self.cnt = 0
+        # hill climbing
+        self.mode = str(Mode)
+        # problem
+        self.BitNum = int(BitNum)
+        self.iteration = int(iteration)
+        self.Run = int(Run)
 
-    def Fitness(self, curr):
-        return np.sum(curr)
+        self.name = f"HC_{self.Problem}_with{self.mode}"
 
     def Neighbor(self, curr, Mode):
-        if Mode == "Rand":
-            ShiftBit = random.randint(0, self.BitNum - 1)
-            new_curr = curr.copy()
-            new_curr[ShiftBit] = 1 - new_curr[ShiftBit]
-        elif Mode == "LR":
-            chose = random.randint(0, 1)
-            # chose = 1
-            if chose == 1:
-                tmp = (self.G.bin2dec(curr, self.BitNum) - 1) % self.BitNum
-            else:
-                tmp = (self.G.bin2dec(curr, self.BitNum) + 1) % self.BitNum
-            new_curr = self.G.dec2bin(tmp, self.BitNum)
-        else:
-            pass
-
-        return new_curr
+        try:
+            if Mode == "Rand":
+                ShiftBit = random.randint(0, self.BitNum - 1)
+                new_curr = curr.copy()
+                new_curr[ShiftBit] = 1 - new_curr[ShiftBit]
+            elif Mode == "LR":
+                chose = random.randint(0, 1)
+                # chose = 1
+                if chose == 1:
+                    tmp = (self.G.bin2dec(curr, self.BitNum) - 1) % self.BitNum
+                else:
+                    tmp = (self.G.bin2dec(curr, self.BitNum) + 1) % self.BitNum
+                new_curr = self.G.dec2bin(tmp, self.BitNum)
+            return new_curr
+        except NameError:
+            print("[ERROR], please check HC Mode")
 
     def RunAIEva(self):
         """Hill Climbing, HC"""
         # (I) Initialize by random
+        self.cnt = 0
         Global_sol = np.array([random.randint(0, 1) for _ in range(0, self.BitNum)])
         Global_fitness = self.Fitness(Global_sol)
         fitness_db = [Global_fitness]
         sol_db = [Global_sol.tolist()]
-        self.cnt = 0
 
         while self.cnt < self.iteration:
             # (T) Transition
@@ -97,15 +99,24 @@ class HC:
 
 if __name__ == "__main__":
     # Hyperparameters
-    Group = ["Rand", "LR"]  # Transition methods
+    if len(sys.argv) == 2:
+        p = str(sys.argv[1])  # Problem: Onemax or Deception
+    else:
+        p = "Onemax"
+
+    if p == "O":
+        p = "Onemax"
+    elif p == "D":
+        p = "Deception"
 
     # Main algorithm loop
-    for ii in Group:
-        w = HC(Mode=ii, BitNum=100, iteration=1000, Run=51)
+    Group = ["Rand", "LR"]  # Transition methods
+    for i in Group:
+        w = HC(p="Onemax", Mode=i, BitNum=100, iteration=1000, Run=51)
         w.AI()  # store result in repective folder(.csv)
 
     # Plotting
     tool = cal()
-    data_list = [f"HC_with{idx}" for idx in Group]
-    p = tool.multiplot("./result/", data_list, "HC_combine")
+    data_list = [f"HC_{p}_with{idx}" for idx in Group]
+    p = tool.multiplot("./result/", data_list, f"HC_{p}_combine")
     p.show()

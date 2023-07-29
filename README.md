@@ -3,7 +3,7 @@
 ***Editor: Samchen (last updated 07062023)***
 
 ## **Overview**
-
+ 
 Algo. name | Total Runtime | Problem Type | Poblem Definition| Global Optimal
 :----|:----:|:----:|:----:|:----:
 [Exhaustive Search](./document/ES.md) | 30 mins | Single-based | Onemax-100bits | 26 bits

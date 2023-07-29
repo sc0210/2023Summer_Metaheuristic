@@ -8,29 +8,35 @@ import time
 
 import numpy as np
 
+from Problem.problem import Problem
 from Tool.Cal import cal
 
 
-class TS:
-    def __init__(self, BitNum, TabuSize, iteration, Run):
-        self.BitNum = BitNum
-        self.tabulist_size = TabuSize
-        self.iteration = iteration
-        self.tabulist = []
-        self.name = f"{self.tabulist_size}_TS"
+class TS(Problem):
+    def __init__(self, p, TabuSize, BitNum, iteration, Run):
+        super().__init__(p=p, BitNum=BitNum)
+        # packages
         self.G = cal()
+        # tabu
+        self.tabulist_size = TabuSize
+        self.tabulist = []
+        # problem
+        self.BitNum = BitNum
+        self.iteration = iteration
         self.Run = Run
+        self.name = f"TS_{self.problem}_{self.BitNum}_{self.tabulist_size}"
 
     def Neighbor(self, curr):
-        ShiftBit = random.randint(0, self.BitNum - 1)
+        """Return neighborhod solution(Transition)"""
+        shiftBit = random.randint(0, self.BitNum - 1)
         new_curr = curr.copy()
-        new_curr[ShiftBit] = 1 - new_curr[ShiftBit]
+        new_curr[shiftBit] = 1 - new_curr[shiftBit]
         return new_curr
 
     def TabuListCheck(self):
         while len(self.tabulist) > self.tabulist_size:
             self.tabulist.pop(0)
-        return list
+        return self.tabulist
 
     def NonTabuNeighborSelection(self, curr):
         while any((curr == x).all() for x in self.tabulist):
@@ -38,17 +44,16 @@ class TS:
             curr = new_curr.copy()
         return curr
 
-    # ==========================================================================================
     def RunAIEva(self):
-        """Tabu Search"""
+        """Tabu Search, TS"""
         # (I) Initialization
-        curr_sol = np.array([random.randint(0, 1) for _ in range(self.BitNum)])
-        Global_fitness = self.G.Fitness(curr_sol)
-        self.tabulist.append(curr_sol.tolist())
-
-        solution_db = [curr_sol]
-        fitness_db = [Global_fitness]
         self.cnt = 0
+        curr_sol = np.array([random.randint(0, 1) for _ in range(self.BitNum)])
+        Global_fitness = self.Fitness(curr_sol)
+
+        solution_db = [curr_sol.tolist()]
+        fitness_db = [Global_fitness]
+        self.tabulist.append(solution_db[0])
 
         while self.cnt < self.iteration:
             # (T) Generate a neighbor solution: tmp_solution
@@ -57,7 +62,7 @@ class TS:
             neighbor_sol = self.NonTabuNeighborSelection(temp_sol)
 
             # (E) Evaluateion
-            Local_fitness = self.G.Fitness(neighbor_sol)
+            Local_fitness = self.Fitness(neighbor_sol)
 
             # (D) Determination
             if Local_fitness > Global_fitness:
@@ -95,19 +100,34 @@ class TS:
                     )
                 )
 
-        # Result visualization
-        AvgResult = self.G.AvgResult(f"./result/{self.name}.csv")
-        self.G.Draw(AvgResult, self.name)
+        # Avg result
         end = time.time()
+        AvgResult = self.G.AvgResult(f"./result/{self.name}.csv")
         print(f"Average max: {np.max(AvgResult)}, Total runtime: {end-st} sec")
-        print("============/END of the Evaluation/============")
+        print("============/END of the Evaluation/============\n")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) == 2:
-        TabuSize = int(sys.argv[1])
+    # Hyperparameters
+    if len(sys.argv) == 3:
+        p = str(sys.argv[1])  # Problem: Onemax or Deception
+        TabuSize = int(sys.argv[2])
     else:
+        p = "Onemax"
         TabuSize = 20
 
-    progress = TS(BitNum=100, TabuSize=TabuSize, iteration=1000, Run=50)
-    progress.AI()
+    if p == "O" or p == "o":
+        p = "Onemax"
+    elif p == "D" or p == "d":
+        p = "Deception"
+
+    # Main algorithm loop
+    for i in range(5, 10, 5):
+        w = TS(p=p, TabuSize=i, BitNum=100, iteration=1000, Run=51)
+        w.AI()
+
+    # Plotting
+    tool = cal()
+    data_list = [f"TS_{p}_{100}_{i}" for i in range(5, 10, 5)]
+    pp = tool.multiplot("./result/", data_list, f"TS_{p}_combine")
+    pp.show()

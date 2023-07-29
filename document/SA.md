@@ -63,12 +63,9 @@ return Global_fitness
 2. Run code
 
     ```shell
-    # One-max problem 
-    python -m Algorithm.SA 10 # sys.argv[1]: temperature
-
-    # Preception problem
-    python -m Algorithm.SA_D 10 # sys.argv[1]: temperature
-
+    # python -m Algorithm.SA [problem type] [temperature]
+    python -m Algorithm.SA Onemax 10 
+    python -m Algorithm.SA Deception 10 
     ```
 
 3. Folder organiation
@@ -85,8 +82,8 @@ return Global_fitness
         [Simulated Annealing](../result/SA_D_4_10.csv)| Preception n=4 |10| 0.95 | 4
         [Simulated Annealing](../result/SA_D_10_10.csv)| Preception n=10 |10| 0.95 | 10
 
-        ![result for Simulated annealing](../result/SA_combine.png)
-        ![result for Simulated annealing](../result/SA_Deception_Problem.png)
+        ![result for Simulated annealing](../result/SA_Onemax_combine.png)
+        ![result for Simulated annealing](../result/SA_Deception_combine.png)
         **Zoom in for details**
         ![result for Simulated annealing(Zoom)](../result/SA_Deception_Problem(zoom).png)
 
