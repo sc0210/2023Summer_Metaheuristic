@@ -3,7 +3,6 @@ import random
 import sys
 import time
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 from Problem.problem import Problem
@@ -15,8 +14,10 @@ class SA(Problem):
         super().__init__(p=p, BitNum=BitNum)
         # packages
         self.G = cal()
+
         # simulate annealing
         self.temperature = float(temperature)
+
         # problem
         self.BitNum = int(BitNum)
         self.iteration = int(iteration)

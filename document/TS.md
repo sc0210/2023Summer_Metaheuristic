@@ -5,7 +5,7 @@
 Tabu Search, introduce the idea of tabu-list that reduce picking repeat solution in every iterations, in order to gain the optimal solution.
 
 - pros:
-    1. Reach more soluiton diversity
+    1. Reach more solution diversity
     2. Avoid continuously searching same solution
 
 - cons:
