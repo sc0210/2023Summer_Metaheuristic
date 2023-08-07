@@ -5,28 +5,31 @@ import time
 
 import numpy as np
 
+from Problem.problem import Problem
 from Tool.Cal import cal
 
 
-class GA:
-    def __init__(self, BitNum, EvaTime, cr, mr, pool_size, select_size, Run):
-        self.BitNum = BitNum
-        self.EvaTime = EvaTime  # Evaluation
+class GA(Problem):
+    def __init__(self, P, BitNum, EvaTime, cr, mr, pool_size, select_size, Run):
+        super().__init__(p=P, BitNum=BitNum)
+        # packages
+        self.G = cal()
+
+        # genetic algorithm
         self.cr = cr  # Crossover rate
         self.mr = mr  # Mutation rate
         self.p = pool_size
         self.s = select_size
-        self.Run = Run
-        self.name = f"{self.cr}{self.mr}{self.p}{self.s}_GA"
-        self.G = cal()
-
         self.cnt = 0
         self.players = 4  # Tournament tour
         self.cnt = 1  # evaluation counts
         self.curr_sol = []  # store curr spring solution
 
-    def Fitness(self, curr):
-        return np.sum(curr)
+        # problem
+        self.BitNum = int(BitNum)
+        self.EvaTime = int(EvaTime)  # Evaluation
+        self.Run = int(Run)
+        self.name = f"GA_{self.problem}_{self.cr}{self.mr}{self.p}{self.s}"
 
     def Selection(self, curr_sol, Local_fitness, method):
         """Selection, return solution array via different method"""
@@ -41,7 +44,7 @@ class GA:
             T = T.tolist()
 
         elif method == "Tournament tour":
-            # Tournament tour: pick the top players in every iteration
+            # Tournament tour: pick the top players in every evaluation
             for _ in range(self.s):
                 selected_p = np.random.choice(pool_size, self.players, replace=None)
                 T.append(np.argmax(selected_p))
@@ -57,7 +60,7 @@ class GA:
     def CrossOver(self, curr_sol, method):
         """Crossover"""
         curr = curr_sol.copy()
-        if method == "One point":
+        if method == "Onepoint":
             slice_index = np.random.randint(0, len(curr[0]))
             for idx in range(len(curr) // 2):
                 if random.random() < self.cr:
@@ -68,7 +71,7 @@ class GA:
                     # print(f"After: {curr[i]},{curr[i+1]}")
                 idx += 2  # CrossOver by pairs
 
-        elif method == "Two point":
+        elif method == "Twopoint":
             slice_index = np.random.choice(len(curr[0]) - 1, 2, replace=None)
             slice_index = np.sort(slice_index)
             p = slice_index[0]
@@ -134,10 +137,10 @@ class GA:
 
         while self.cnt < self.EvaTime:
             st = time.time()
-            # (T) Selection, Crossover , Mutation
+            # (T) Selection, Crossover, Mutation
             Lf = [self.Fitness(sol) for sol in self.curr_sol]
             s = self.Selection(self.curr_sol, Lf, "Roulette wheel")
-            c = self.CrossOver(s, "One point")  # "One point" or "Two point"
+            c = self.CrossOver(s, "Onepoint")  # "Onepoint" or "Twopoint"
             m = self.Mutation(c)
 
             # (E) Evaluation
@@ -174,15 +177,15 @@ class GA:
                     )
                 )
 
-        # Result visualization
-        AvgResult = self.G.AvgResult(f"./result/{self.name}.csv")
-        self.G.Draw(AvgResult, self.name)
+        # Avg result
         end = time.time()
+        AvgResult = self.G.AvgResult(f"./result/{self.name}.csv")
         print(f"Average max: {np.max(AvgResult)}, Total runtime: {end-st} sec")
-        print("============/END of the Evaluation/============")
+        print("============/END of the Evaluation/============\n")
 
 
 if __name__ == "__main__":
+    # Hyperparameters
     if len(sys.argv) == 5:
         cr = float(sys.argv[1])
         mr = float(sys.argv[2])
@@ -190,7 +193,22 @@ if __name__ == "__main__":
         s = int(sys.argv[4])  # selection size
 
     else:
-        cr, mr, p, s = 0.9, 0.3, 100, 7
+        cr, mr, p, s = 0.9, 0.3, 1000, 100
 
-    p = GA(cr=cr, mr=mr, pool_size=p, select_size=s, EvaTime=1000, BitNum=100, Run=50)
-    p.AI()
+    # Main algorithm loop(Onemax)
+    xx = GA(
+        P="Onemax",
+        cr=cr,
+        mr=mr,
+        pool_size=p,
+        select_size=s,
+        EvaTime=1000,
+        BitNum=100,
+        Run=50,
+    )
+    xx.AI()
+
+    # Plotting
+    tool = cal()
+    pp = tool.multiplot("./result/", [f"GA_Onemax_{cr}{mr}{p}{s}"], "GA_Onemax_combine")
+    pp.show()
