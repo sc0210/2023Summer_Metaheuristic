@@ -169,7 +169,7 @@ class GA(Problem):
 
             if Run_index % 10 == 0:
                 print(
-                    "Run.{:<2}, Obj:{:<2}, Time:{:<3}\nBest solution:{}\n".format(
+                    "Run.{:<2}, Best Obj:{:<2}, Time:{:<3}\nBest solution:{}\n".format(
                         Run_index,
                         np.max(fitness_result),
                         np.round(time.time() - st, 3),
