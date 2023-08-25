@@ -14,18 +14,21 @@ from Tool.Cal import cal
 
 class ACO(P):
     def __init__(self, filename, ER, AntNum, Q, alpha, beta, EvalTime, Run):
-        super().__init__(
-            filename=filename,
-        )
+        super().__init__(filename=filename)
+        # packages
+        self.G = cal()
+
+        # ant colony optimization
         self.AntNum = AntNum
         self.ER = ER  # EvaporateRate
         self.Q = Q
         self.alpha = alpha
         self.beta = beta
+
+        # problem
         self.EvaTime = EvalTime
         self.Run = Run
         self.name = f"ACO_{self.ER}{self.Q}{self.alpha}{self.beta}"
-        self.G = cal()
 
     def Check(self, curr_sol):
         """Check solution whether it covers all nodes"""
@@ -248,10 +251,10 @@ class ACO(P):
             if idx == p.index(p[-1]):
                 break
 
-            for process in process_list[p[idx] : p[idx + 1]]:
+            for process in process_list[p[idx]: p[idx + 1]]:
                 process.start()
             # Wait for all processes to finish
-            for process in process_list[p[idx] : p[idx + 1]]:
+            for process in process_list[p[idx]: p[idx + 1]]:
                 process.join()
 
             # Collect results from the queue
