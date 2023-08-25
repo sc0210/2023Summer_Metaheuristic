@@ -20,7 +20,7 @@ Local_fitness = Global_fitness = Fitness(s)
 while not met termination condition:
 
     #(T)Transition
-    s = solution_construction(p, d);
+    s = solution_construction(p, d)
     p = pheromone_update(p, s)
     
     #(E)Evaluaiton
@@ -37,7 +37,7 @@ return Global_fitness
   - Encoding: Every solution encoded by visited order, and it aims to cover all the nodes in the minimal distance cost. Except the first solution, other evaluations construct the solution by two key factor(**Pheromone and distance matrices**)
   - SolutionUpdate: Alike to ant's foraging behavior, they are more likely to choose most pheromone concentration path
 
-- Pheromone Update
+- Pheromone update
   - After creating ant solution in evey evaluation, the algorithm will collect the edge that mostly visited by observing the pheromone concentration. Pheromone matrix keeps the updated values and served as a prerequisition for the next evaluation.
 
 ## Flowchart
@@ -55,7 +55,7 @@ return Global_fitness
 
     ```shell
     #python -m Algorithm.ACO [Evaporate Rate][Q][alpha][beta]
-    python -m Algorithm.GA 0.8 2.0 4 3
+    python -m Algorithm.ACO 0.8 2.0 4 3
     ```
 
 3. Folder organiation
