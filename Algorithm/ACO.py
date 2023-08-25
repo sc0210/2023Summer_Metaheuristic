@@ -1,8 +1,11 @@
+import concurrent.futures
+import multiprocessing
 import os
 import random
 import sys
 import time
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 from Algorithm.TSP import P
@@ -21,7 +24,7 @@ class ACO(P):
         self.beta = beta
         self.EvaTime = EvalTime
         self.Run = Run
-        self.name = f"{self.AntNum}{self.alpha}{self.beta}{self.EvaTime}_ACO"
+        self.name = f"ACO_{self.ER}{self.Q}{self.alpha}{self.beta}"
         self.G = cal()
 
     def Check(self, curr_sol):
@@ -62,221 +65,271 @@ class ACO(P):
         print("Could not find a valid solution within the maximum attempts.")
         return None
 
-    def Encode(self, curr_sol):
-        """Encode the solution from given edge"""
-        # Initialize bool matrix: np.full(shape, )
-        EncodeMatrix = np.full((self.NodeNum, self.NodeNum), False, dtype=bool)
-        for idx in curr_sol:
-            i, j = idx[0] - 1, idx[1] - 1
-            EncodeMatrix[i, j] = EncodeMatrix[j, i] = True
-        return EncodeMatrix
-
     def RandSolConstruct(self):
         """Return sol (visited node order)
-        Random shuffle approach"""
-        sol = []
-        NotVisited = list(range(0, self.NodeNum))
-        random.shuffle(NotVisited)
-        sol.extend(NotVisited)
+        Note: Random shuffle approach"""
+
+        # Sol = [0,1,2,...(nodenum-1)]
+        sol = list(range(0, self.NodeNum))
+        random.shuffle(sol)
         return sol
 
-    def RandSquareMat(self, min, max, dim):
-        """Random Generate distance cost matrix (DEBUG use)"""
-        M = np.zeros((dim, dim), dtype=float)
+    def RandSquareMat(self, Max, dim):
+        """Random Generate distance cost matrix"""
+        M = np.ones((dim, dim), dtype=float)
         for i in range(dim):
-            for j in range(dim):
-                M[i][j] = M[j][i] = random.uniform(min, max)
-                M[i][i] = 0
+            for j in range(i + 1, dim):
+                M[i, j] = M[j, i] = random.uniform(0, Max)
         return M
 
-    def EdgeCost(self, DistMatrix, p1, p2):
-        """Calculate distance cost of two given node index"""
-        return DistMatrix[p1][p2]
-
-    def RouteCost(self, DistMatrix, sol):
-        """Calculate distance cost of a given solution(visited node)"""
-        Cost = 0
-        for i in range(self.NodeNum - 1):
-            Cost += int(self.EdgeCost(DistMatrix, sol[i], sol[i + 1]))
-            i += 2
-        # print(f"Current cost:{Cost}")
-        return Cost
-
-    def DeltaSum(self, i, j, RouteTotalCost, db):
-        """Return the sum of every solution cost that involve edge(i,j)"""
-        update = 0
-        for ant_idx, ant_sol in enumerate(db):
-            if (
-                (i in ant_sol)
-                and (i != ant_sol[-1])
-                and (ant_sol[ant_sol.index(i) + 1] == j)
-            ):
-                update += self.Q / float(RouteTotalCost[ant_idx])
+    def DeltaSum(self, i, j, RouteTotalCost, AntSol):
+        """Return the sum of every solution cost that involve edge(i,j) 8.2"""
+        delta_k = 0
+        # Check whether current ant solution exist edge(i,j)
+        for k_idx, sol in enumerate(AntSol):
+            if (i in sol) and (i != sol[-1]) and (sol[sol.index(i) + 1] == j):
+                delta_k += self.Q / RouteTotalCost[k_idx]
                 # print(f"Yes, [{i},{j}] {ant_idx}")
-            # else:
-            # print(f"Not found in ant {ant_idx}")
-        return update
+        return delta_k
 
-    def PheronomeUpdate(self, PheronomeMatrix, RouteTotalCost, db):
-        """Update Pheronome through traverse every edge"""
-        P, R = PheronomeMatrix, RouteTotalCost
-        for j in range(self.NodeNum):
-            for i in range(self.NodeNum):
-                v = (1 - self.ER) * P[j][i] + self.DeltaSum(j, i, R, db)
-                P[j][i] = P[i][j] = v
+    def PheronomeUpdate(self, PheMatrix, RouteTotalCost, AntSol):
+        """Update Pheronome through traverse every edge 8.4"""
+        # Evaporate rate
+        P = PheMatrix.copy() * self.ER
+        # Update the pheronome matrix
+        for i in range(self.NodeNum):
+            for j in range(i, self.NodeNum):
+                P[i, j] += self.DeltaSum(i, j, RouteTotalCost, AntSol)
         return P
 
-    def SolConstruct(self, PheronomeMatrix, DistMatrix):
-        """Solution constuction(usage in single ant)
+    def SolConstruct(self, PheMat):
+        """Solution construction(usage in single ant)
 
         Argument:
-            PheronomeMatrix, DistMatrix
+            PheMatrix, DistMatrix
         Return:
             Solution(encoding set)
         """
         StartPoint = random.randint(0, self.NodeNum - 1)
-        unvistied = list(range(self.NodeNum))
+        unvisited = list(range(self.NodeNum))
 
         visited = [StartPoint]
-        unvistied.remove(StartPoint)
+        unvisited.remove(StartPoint)
 
         while len(visited) != self.NodeNum:
             # Calculate the probability of next point
-            prob = np.zeros(len(unvistied), dtype=float)
-            for idx, u_idx in enumerate(unvistied):
+            prob = np.zeros(len(unvisited), dtype=float)
+            for idx, unvi_node in enumerate(unvisited):
                 prob[idx] = self.NextPointProb(
-                    visited[-1], u_idx, visited, PheronomeMatrix, DistMatrix
+                    visited[-1], unvi_node, unvisited, PheMat
                 )
             # Normalized the probablity (all prob. sum = 1)
-            normalized_probs = [p / sum(prob) for p in prob]
+            normalized_probs = [p / np.sum(prob) for p in prob]
 
-            # Pick next point porportion to the prob calcluate in the above
-            next_point = np.random.choice(unvistied, p=normalized_probs)
+            # Pick next point proportion to the prob calcluate in the above
+            next_point = np.random.choice(unvisited, p=normalized_probs)
             visited.append(next_point)
-            unvistied.remove(next_point)
+            unvisited.remove(next_point)
 
         # print(visited)
         return visited
 
-    def NextPointProb(self, i, j, visited, PheronomeMatrix, DistMatrix):
-        """calculate next point probability(usage in SolConstruct)
+    def NextPointProb(self, i, j, unvisited, PheMat):
+        """calculate next point probability(pass over to SolConstruct)
 
         Argument:
-            i, j, visited, PheronomeMatrix, DistMatrix
+            i, j, visited, PheMatrix, DistMatrix
         Return:
             Probability
         """
-        P, _D = PheronomeMatrix, np.where(DistMatrix != 0, 1 / DistMatrix, 0)
-        dd = 0
-        uu = (P[i][j]) ** self.alpha + (_D[i][j]) ** self.beta
-        for v_idx in range(len(visited)):
-            dd += (P[i][v_idx]) ** self.alpha + (_D[i][v_idx]) ** self.beta
+        epsilon = 1e-10  # Add a small constant to avoid division by zero
 
-        # Add a small constant to avoid division by zero
-        epsilon = 1e-10
-        dd += epsilon
-        return float(uu) / float(dd)
+        P = PheMat
+        _D = np.where(self.DistMat != 0, 1 / self.DistMat, 0)
 
-    def RunAIEva(self):
-        # (I) Initialize: Distance Matrix
-        DistMat = self.FetchData()  # Fetch NodeNum
-        # self.NodeNum = 3 # DEBUG testing use
-        # DistMatrix = self.RandSquareMat(min=1.0, max=5.0, dim=self.NodeNum)
+        uu = np.power(P[i, j], self.alpha) + np.power(_D[i, j], self.beta)
+        dd = np.sum(
+            np.power(P[i, unvisited], self.alpha)
+            + np.power(_D[i, unvisited], self.beta)
+        )
+        dd = np.where(dd != 0, dd, epsilon)
+        return uu / dd
 
-        # (I) Initialize: Pheronome Matrix
-        PheronomeMat = self.RandSquareMat(min(DistMat), max(DistMat), dim=self.NodeNum)
+    def local_search(self, DistMat, AntSol):
+        AntSol_cost = [self.RouteCost(DistMat, sol) for sol in AntSol]
+        # partition = int(self.AntNum * 20%)
+        # Pick = np.sort(AntSol_cost)[::-1][:partition]
+        T, prob = [] * self.AntNum, [] * self.AntNum
 
-        # (I) Initialize: Ant solution (random)
-        db = [self.RandSolConstruct() for _ in range(self.AntNum)]
+        for idx in range(self.AntNum):
+            prob.append(AntSol_cost[idx] / (np.sum(AntSol_cost)))
+        T = np.random.choice(self.AntNum, self.AntNum, replace=False, p=prob)
+        T = T.tolist()
+        return T
 
-        # ================================================================================
-        # (E) Evaluaie route cost for every sol
-        cost_db = [self.RouteCost(DistMat, sol) for sol in db]
+    def RunAIEva(self, result_queue, sol_queue):
+        # (I) Initialize: DistMax, PheMat, AntSol
+        self.DistMat = self.FetchData()  # Fetch NodeNum
+        PheMat = np.full((self.NodeNum, self.NodeNum), 0.01)
+        AntSol = [self.RandSolConstruct() for _ in range(self.AntNum)]
 
-        # (T) Update pheronome table
-        PheronomeMat = self.PheronomeUpdate(PheronomeMat, cost_db, db)
+        # (E) Evaluate route cost for every sol
+        AntSol_cost = [self.RouteCost(sol) for sol in AntSol]
 
         # (D) Record the score for the initializaiton
-        Global_min = min(cost_db)
+        Global_sol = [AntSol[AntSol_cost.index(np.min(AntSol_cost))]]
+        Global_min = np.min(AntSol_cost)
+        sol = [Global_sol]
         score = [Global_min]
-        # ================================================================================
+
         # EvalTime loop
         self.cnt = 1
-        while self.cnt < self.EvaTime - 1:
-            # (T) Construction ant solution based on PheronomeMat & DistMat
-            db = [self.SolConstruct(PheronomeMat, DistMat) for _ in range(self.AntNum)]
+        while self.cnt <= self.EvaTime:
+            # (T) Construct ant solution
+            AntSol = [self.SolConstruct(PheMat) for _ in range(self.AntNum)]
 
-            # (E) Calculate each total distance cost & stored in cost_db
-            cost_db = [self.RouteCost(DistMat, sol) for sol in db]
-            Local_min = min(cost_db)  # pick the minimun
-            print(f"Cnt:{self.cnt}, {Local_min}")
+            # (E) Calculate each total distance cost & stored in AntSol_cost
+            AntSol_cost = [self.RouteCost(sol) for sol in AntSol]
+            Local_min = np.min(AntSol_cost)  # pick the minimun
 
             # (D) Determine global/local optimal
             if Local_min < Global_min:
                 Global_min = Local_min
-                Global_sol = db[cost_db.index(Local_min)]
+                Global_sol = AntSol[AntSol_cost.index(Global_min)]
             score.append(Global_min)
+            sol.append(Global_sol)
+            print(f"Eva:{self.cnt}, Local_min:{Local_min}, Global_min:{Global_min}")
 
             # (T) Update Pheronome table
-            PheronomeMat = self.PheronomeUpdate(PheronomeMat, cost_db, db)
-            # selected_idx = np.where(np.isin(np.sort(cost_db)[::-1][:5], db))[0].tolist()
-            # db = [db[i] for i in selected_idx]
+            PheMat = self.PheronomeUpdate(PheMat, AntSol_cost, AntSol)
+
+            # Local search
+            # selected = self.local_search(DistMat, AntSol)
+            # AntSol = selected.copy()
 
             self.cnt += 1
         print(Global_sol)
-        return score
+        result_queue.put(score)
+        sol_queue.put(Global_sol)
+        return score, sol
+
+    def AI_m(self):
+        print("============/START of the Evaluation/============")
+        st = time.time()
+        core = 6
+        process_list = []
+        result_queue = multiprocessing.Queue()  # Queue for collecting results
+        sol_queue = multiprocessing.Queue()  # Queue for collecting results
+
+        # Process queue
+        for _ in range(self.Run):
+            process = multiprocessing.Process(
+                target=self.RunAIEva,
+                args=(
+                    result_queue,
+                    sol_queue,
+                ),
+            )
+            process_list.append(process)
+        # Process partition(by a given core numbers)
+        p = [0]
+        while self.Run > 1:
+            if self.Run > core:
+                p.append(p[-1] + core)
+                self.Run -= core
+            else:
+                p.append(p[-1] + self.Run - 1)
+                self.Run -= self.Run
+
+        # Start all processes
+        for idx, partition in enumerate(p):
+            collected_results = []
+            collected_sol = []
+            if idx == p.index(p[-1]):
+                break
+
+            for process in process_list[p[idx] : p[idx + 1]]:
+                process.start()
+            # Wait for all processes to finish
+            for process in process_list[p[idx] : p[idx + 1]]:
+                process.join()
+
+            # Collect results from the queue
+            while not result_queue.empty():
+                collected_results.append(result_queue.get())
+                collected_sol.append(sol_queue.get())
+
+            for i in range(len(collected_results)):
+                self.G.Write2CSV(collected_results[i], f"./result/{self.name}.csv")
+                self.G.Write2CSV(collected_sol[i], f"./result/{self.name}_sol.csv")
+                self.PlotPath(collected_sol[i], self.RouteCost(collected_sol[i]))
+        print("============/END of the Evaluation/============")
 
     def AI(self):
+        print("============/START of the Evaluation/============")
         st = time.time()
+        result_queue = multiprocessing.Queue()  # Queue for collecting results
+        sol_queue = multiprocessing.Queue()  # Queue for collecting results
+        if not os.path.isdir("./result/"):
+            os.makedirs("./result")
+
+        # Average the result from multiple runs
         for Run_index in range(self.Run):
-            fitness_result = self.RunAIEva()
+            fitness_result, sol = self.RunAIEva(result_queue, sol_queue)
+            self.G.Write2CSV(fitness_result, f"./result/{self.name}.csv")
+            self.PlotPath(sol, self.RouteCost(sol))
+
             if Run_index % 10 == 0:
                 print(
-                    "Run.{:<2}, Obj:{:<2}, Time:{:<3}\n".format(
-                        Run_index, fitness_result[-1], np.round(time.time() - st, 3)
+                    "Run.{:<2}, Best Obj:{:<2}, Time:{:<3}\n".format(
+                        Run_index, np.min(fitness_result), np.round(time.time() - st, 3)
                     )
                 )
-            self.G.Write2CSV(fitness_result, f"./result/{self.name}.csv")
 
-        # Result visualization
-        AvgResult = self.G.AvgResult(f"./result/{self.name}.csv")
-        self.G.Draw(AvgResult, self.name)
+        # Avg result
         end = time.time()
+        AvgResult = self.G.AvgResult(f"./result/{self.name}.csv")
         print(f"Average max: {np.max(AvgResult)}, Total runtime: {end-st} sec")
+        print("============/END of the Evaluation/============")
 
 
 if __name__ == "__main__":
     if len(sys.argv) == 8:
-        ER = int(sys.argv[1])
+        ER = float(sys.argv[1])
         AntNum = int(sys.argv[2])
-        Q = int(sys.argv[3])
+        Q = float(sys.argv[3])
         alpha = int(sys.argv[4])
         beta = int(sys.argv[5])
         EvalTime = int(sys.argv[6])
         Run = int(sys.argv[7])
     else:
         filename = [
+            "./Dataset/eil51.tsp",
             "./Dataset/a280.tsp",
             "./Dataset/bays29.tsp",
             "./Dataset/ali535.tsp",
+            "./Dataset/aa.tsp",
         ]
         # Hyper
-        # Initial reference from related paper
-        # Control: ER; adjustable: others
         ER = 0.8
-        Q = 4.0  # [0.5, 1, 1.5, 2,..] choose the best, then test next (alpha)
-        alpha = 3  # 2 [0.5, 1, 1.5,..]
-        beta = 2  # 1 [0.5, 1, 1.5,..]
+        Q = 2.0  # [0.5, 1, 1.5, 2,..]
+        alpha = 4  # 2 [0.5, 1, 1.5,..] # Pheronome
+        beta = 3  # 1 [0.5, 1, 1.5,..] # Distance
 
         # Non-Hyper
-        AntNum = 29  # City number
-        EvalTime = 500
-        Run = 20
+        AntNum = 100  # City number
+        EvalTime = 1000
+        Run = 45
 
-    p = ACO(filename[1], ER, AntNum, Q, alpha, beta, EvalTime, Run)
-    p.AI()
+    p = ACO(filename[0], ER, AntNum, Q, alpha, beta, EvalTime, Run)
+    # p.AI_m()  # with multi-processing
+    # p.AI() #without multi-processing
 
-# 精進方法
-# 策略一：自適應 減少超參數
-# 策略二：觀察收斂結果 一隻ant的迭代過程
-# ACS演算法
+    # Plotting
+    tool = cal()
+    pp = tool.multiplot(
+        "./result/",
+        [f"ACO_{ER}{Q}{alpha}{beta}"],
+        "ACO_combine",
+    )
+    pp.show()

@@ -1,7 +1,10 @@
 import csv
+import os
 
 import matplotlib.pyplot as plt
 import numpy as np
+
+from Algorithm.TSP import P
 
 
 class cal:
@@ -29,10 +32,22 @@ class cal:
         return dec
 
     def Write2CSV(self, data, FILE):
-        with open(FILE, "a") as file:
-            writer = csv.writer(file)
-            writer.writerow(data)
-        # print("Export data to csv file")
+        """
+        w  write mode
+        r  read mode
+        a  append mode
+
+        w+  create file if it doesn't exist and open it in write mode
+        r+  open for reading and writing. Does not create file.
+        a+  create file if it doesn't exist and open it in append mode"""
+        if os.path.isfile(FILE):
+            with open(FILE, "a") as file:
+                writer = csv.writer(file)
+                writer.writerow(data)
+        else:
+            with open(FILE, "w+") as file:
+                writer = csv.writer(file)
+                writer.writerow(data)
 
     def AvgResult(self, SrcFilepath):
         """Read multi-rows and average the data
