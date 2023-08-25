@@ -2,7 +2,7 @@
 
 ## Overview
 
-Genetic algorithm, a population-based approach, generates several  solutions in every evaluation and iterates answers by transitions composed of three operators(selection, crossover, mutation) that are inspired from Charles Darwin's Theory of Evolution.
+Genetic algorithm, a population-based approach, generates several solutions in every evaluation and iterates answers by transitions composed of three operators(selection, crossover, mutation) that are inspired from Charles Darwin's Theory of Evolution.
 
 - pros:
     1. Reach more solution diversity
