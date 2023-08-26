@@ -1,9 +1,11 @@
 # precision: 6, 10e-6
+import os
 import sys
 import time
 
 import numpy as np
 from numpy import e, pi
+
 from Tool.Cal import cal
 
 
@@ -20,6 +22,10 @@ class PSO:
         EdgeConstraint,
         Run,
     ):
+        # packages
+        self.G = cal()
+
+        # particle swarm optimization
         self.ParticleNum = ParticleNum
         self.dim = Dimension
         self.step = Step
@@ -27,20 +33,20 @@ class PSO:
         self.a1 = a1  # alpha1
         self.a2 = a2  # alpha2
         self.C = EdgeConstraint  # Ths size of the edge
-        self.EvaTime = EvaTime
         self.SubSolNum = int((self.dim / self.step) ** 2)
 
         # store global optimal for each evatime
-        self.gb = np.zeros((self.EvaTime, 2), dtype=float)
+        self.gb = np.zeros((EvaTime, 2), dtype=float)
         # personal best for each particle
         self.pb = np.zeros((self.ParticleNum, 2), dtype=float)
         self.v = np.zeros((self.ParticleNum, 2), dtype=float)  # velocity
         self.p = np.zeros((self.ParticleNum, 2), dtype=float)  # position
         self.s = []  # np.zeros((self.ParticleNum, self.SubSolNum, 2), dtype=float)
 
-        self.name = f"{self.dim}{self.ParticleNum}{self.a1}{self.a2}_PSO"
+        # problem
         self.Run = Run
-        self.G = cal()
+        self.EvaTime = EvaTime
+        self.name = f"PSO_{self.dim}{self.a1}{self.a2}"
 
     def obj_func(self, x, y):
         """Ackley multimodal function"""
@@ -111,7 +117,7 @@ class PSO:
 
     def PB_Update(self):
         """Update self.pb(Personal best) from self.s"""
-        for p_idx in range(self.ParticleNum):
+        for p_idx, _ in enumerate(self.s):
             temp = np.array([self.obj_func(s[0], s[1]) for s in self.s[p_idx]])
             self.pb[p_idx] = self.s[p_idx][np.argmin(temp)]
         return self.pb
@@ -154,21 +160,27 @@ class PSO:
     def AI(self):
         print("============/START of the Evaluation/============")
         st = time.time()
+        if not os.path.isdir("./result/"):
+            os.makedirs("./result")
+
+        # Average the result from multiple runs
         for Run_index in range(self.Run):
-            result = self.RunAIEva()
-            self.G.Write2CSV(np.array(result), "./result", self.name)
+            fitness_result = self.RunAIEva()
+            self.G.Write2CSV(fitness_result, f"./result/{self.name}.csv")
 
             if Run_index % 10 == 0:
                 print(
-                    "Run.{:<2}, Obj:{:<2}, Time:{:<3}\n".format(
+                    "Run.{:<2}, Best Obj:{:<2}, Time:{:<3}\n".format(
                         Run_index,
-                        np.max(result),
+                        np.min(fitness_result),
                         np.round(time.time() - st, 3),
                     )
                 )
 
-        # Visualization of the result
-        self.G.Draw(self.G.AvgResult(f"{self.name}.csv"), self.name)
+        # Avg result
+        end = time.time()
+        AvgResult = self.G.AvgResult(f"./result/{self.name}.csv")
+        print(f"Average max: {np.max(AvgResult)}, Total runtime: {end-st} sec")
         print("============/END of the Evaluation/============")
 
 
@@ -187,7 +199,7 @@ if __name__ == "__main__":
         a2 = float(sys.argv[7])
 
     else:
-        ParticleNum, Dimension, EdgeConstraint, Step = 30, 10, 40, 1
+        ParticleNum, Dimension, EdgeConstraint, Step = 30, 5, 40, 1
         Inertia, a1, a2 = 0.8, 0.8, 0.5
     p = PSO(
         ParticleNum=ParticleNum,
@@ -201,3 +213,8 @@ if __name__ == "__main__":
         Run=50,
     )
     p.AI()
+
+    # Plotting
+    tool = cal()
+    pp = tool.multiplot("./result/", [f"PSO_{Dimension}{a1}{a2}"], "PSO_combine")
+    pp.show()
