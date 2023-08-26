@@ -180,7 +180,7 @@ class ACO(P):
         AntSol_cost = [self.RouteCost(sol) for sol in AntSol]
 
         # (D) Record the score for the initializaiton
-        Global_sol = [AntSol[AntSol_cost.index(np.min(AntSol_cost))]]
+        Global_sol = [AntSol[np.argmin(AntSol_cost)]]
         Global_min = np.min(AntSol_cost)
         sol = [Global_sol]
         score = [Global_min]
@@ -198,7 +198,7 @@ class ACO(P):
             # (D) Determine global/local optimal
             if Local_min < Global_min:
                 Global_min = Local_min
-                Global_sol = AntSol[AntSol_cost.index(Global_min)]
+                Global_sol = AntSol[np.argmin(AntSol_cost)]
             score.append(Global_min)
             sol.append(Global_sol)
             print(f"Eva:{self.cnt}, Local_min:{Local_min}, Global_min:{Global_min}")
@@ -251,10 +251,10 @@ class ACO(P):
             if idx == p.index(p[-1]):
                 break
 
-            for process in process_list[p[idx]: p[idx + 1]]:
+            for process in process_list[p[idx] : p[idx + 1]]:
                 process.start()
             # Wait for all processes to finish
-            for process in process_list[p[idx]: p[idx + 1]]:
+            for process in process_list[p[idx] : p[idx + 1]]:
                 process.join()
 
             # Collect results from the queue
@@ -325,7 +325,7 @@ if __name__ == "__main__":
         Run = 45
 
     p = ACO(filename[0], ER, AntNum, Q, alpha, beta, EvalTime, Run)
-    # p.AI_m()  # with multi-processing
+    p.AI_m()  # with multi-processing
     # p.AI() #without multi-processing
 
     # Plotting
